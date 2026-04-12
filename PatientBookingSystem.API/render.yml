@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: patient-booking-system
+    runtime: dotnet
+    buildCommand: dotnet publish PatientBookingSystem.API/PatientBookingSystem.API.csproj -c Release -o out
+    startCommand: dotnet out/PatientBookingSystem.API.dll

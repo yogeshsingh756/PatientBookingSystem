@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="PatientBookingSystem.API/PatientBookingSystem.API.csproj" />
+  <Project Path="PatientBookingSystem.Application/PatientBookingSystem.Application.csproj" />
+  <Project Path="PatientBookingSystem.Common/PatientBookingSystem.Common.csproj" />
+  <Project Path="PatientBookingSystem.Domain/PatientBookingSystem.Domain.csproj" />
+  <Project Path="PatientBookingSystem.Infrastructure/PatientBookingSystem.Infrastructure.csproj" />
+</Solution>
