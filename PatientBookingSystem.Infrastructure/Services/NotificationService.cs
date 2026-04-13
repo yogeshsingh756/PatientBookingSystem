@@ -23,8 +23,8 @@ namespace PatientBookingSystem.Infrastructure.Services
         public NotificationService(IOptions<EmailSettings> emailSettings, IConfiguration config)
         {
             _emailSettings = emailSettings.Value;
+            _apiKey = config["SENDGRID_API_KEY"];
             //_apiKey = config["SendGridSettings:ApiKey"];
-            Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
             _senderEmail = config["SendGridSettings:SenderEmail"];
         }
         public async Task SendEmailAsync(string email, string subject, string message)
