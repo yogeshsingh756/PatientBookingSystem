@@ -185,7 +185,8 @@ namespace PatientBookingSystem.Application.Services
                 HouseNumber = user.HouseNumber,
                 Password = user.PasswordHash,
                 Email = user.Email,
-                Role = user.Role
+                Role = user.Role,
+                PinCode = user.PinCode
             };
 
             await _otpRepository.SaveOtpAsync(otpEntity);
