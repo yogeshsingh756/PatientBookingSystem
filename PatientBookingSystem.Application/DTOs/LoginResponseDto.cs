@@ -14,6 +14,7 @@ namespace PatientBookingSystem.Application.DTOs
         public string Address { get; set; }
         public string Landmark { get; set; }
         public string HouseNumber { get; set; }
+        public string Pincode { get; set; } = string.Empty;
 
         public string Role { get; set; }
 

@@ -19,6 +19,7 @@ namespace PatientBookingSystem.Domain.Entities
         public string Landmark { get; set; }
         public string HouseNumber { get; set; }
         public string Role { get; set; }
+        public string PinCode { get; set; }
 
         public DateTime ExpiryTime { get; set; }
         public bool IsUsed { get; set; }
