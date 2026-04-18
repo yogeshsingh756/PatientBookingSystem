@@ -34,5 +34,32 @@ namespace PatientBookingSystem.Infrastructure.Repositories
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == input || u.PhoneNumber == input);
         }
+
+        // ✅ GET QUERYABLE (FOR PAGINATION & SEARCH)
+        public IQueryable<User> GetQueryable()
+        {
+            return _context.Users.AsQueryable();
+        }
+
+        // ✅ GET BY ID
+        public async Task<User?> GetByIdAsync(int id)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
+
+        // ✅ UPDATE USER
+        public async Task UpdateAsync(User user)
+        {
+            _context.Users.Update(user);
+            await Task.CompletedTask; // no DB call here
+        }
+
+        // ✅ SAVE CHANGES
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

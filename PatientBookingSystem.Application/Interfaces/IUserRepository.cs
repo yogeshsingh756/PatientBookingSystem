@@ -10,5 +10,9 @@ namespace PatientBookingSystem.Application.Interfaces
         Task<bool> ExistsAsync(string email, string phone);
         Task AddAsync(User user);
         Task<User?> GetByEmailPhoneAsync(string input);
+        IQueryable<User> GetQueryable();
+        Task<User?> GetByIdAsync(int id);
+        Task UpdateAsync(User user);
+        Task SaveChangesAsync();
     }
 }
