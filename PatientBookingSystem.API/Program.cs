@@ -57,7 +57,8 @@ builder.Services.AddCors(options =>
                 "http://localhost:5173",
                 "http://localhost:5174",
                 "https://erp.kpmic.in",
-                "http://localhost:5175"
+                "http://localhost:5175",
+                "https://patientbookingsystem.onrender.com"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
