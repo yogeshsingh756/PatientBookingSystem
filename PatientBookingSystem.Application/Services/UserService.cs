@@ -20,7 +20,7 @@ namespace PatientBookingSystem.Application.Services
         public async Task<ApiResponse<PaginatedResponse<UserDto>>> GetAllPatientsAsync(UserQueryDto dto)
         {
             var query = _repo.GetQueryable()
-                             .Where(x => x.Role == "Patient"); // 👈 only patient
+                             .Where(x => x.Role.ToLower() == "patient"); // 👈 only patient
 
             // 🔍 SEARCH
             if (!string.IsNullOrEmpty(dto.Search))
@@ -73,7 +73,7 @@ namespace PatientBookingSystem.Application.Services
         {
             var user = await _repo.GetByIdAsync(id);
 
-            if (user == null || user.Role != "Patient")
+            if (user == null || user.Role.ToLower() != "patient")
                 return ApiResponse<UserDto>.FailResponse("User not found");
 
             var result = new UserDto
@@ -100,7 +100,7 @@ namespace PatientBookingSystem.Application.Services
         {
             var user = await _repo.GetByIdAsync(id);
 
-            if (user == null || user.Role != "Patient")
+            if (user == null || user.Role.ToLower() != "patient")
                 return ApiResponse<string>.FailResponse("User not found");
 
             user.Name = dto.Name;
@@ -122,7 +122,7 @@ namespace PatientBookingSystem.Application.Services
         {
             var user = await _repo.GetByIdAsync(id);
 
-            if (user == null || user.Role != "Patient")
+            if (user == null || user.Role.ToLower() != "patient")
                 return ApiResponse<string>.FailResponse("User not found");
 
             user.IsActive = false;

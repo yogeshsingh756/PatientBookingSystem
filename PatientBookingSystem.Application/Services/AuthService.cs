@@ -50,7 +50,7 @@ namespace PatientBookingSystem.Application.Services
                 Address = dto.Address,
                 Landmark = dto.Landmark,
                 HouseNumber = dto.HouseNumber,
-                Role = dto.Role,
+                Role = dto.Role.ToLower(),
 
                 ExpiryTime = DateTime.UtcNow.AddMinutes(5),
                 IsUsed = false,
