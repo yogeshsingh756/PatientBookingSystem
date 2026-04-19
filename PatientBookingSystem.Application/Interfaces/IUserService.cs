@@ -12,5 +12,6 @@ namespace PatientBookingSystem.Application.Interfaces
         Task<ApiResponse<UserDto>> GetByIdAsync(int id);
         Task<ApiResponse<string>> UpdateAsync(int id, UpdateUserDto dto);
         Task<ApiResponse<string>> DeleteAsync(int id);
+        Task<ApiResponse<string>> RegisterPatientAsync(RegisterRequestDto dto);
     }
 }

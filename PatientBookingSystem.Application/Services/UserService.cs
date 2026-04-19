@@ -1,6 +1,7 @@
 ﻿using PatientBookingSystem.Application.DTOs;
 using PatientBookingSystem.Application.DTOs.Common;
 using PatientBookingSystem.Application.Interfaces;
+using PatientBookingSystem.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,10 +11,12 @@ namespace PatientBookingSystem.Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _repo;
+        private readonly INotificationService _notification;
 
-        public UserService(IUserRepository repo)
+        public UserService(IUserRepository repo, INotificationService notification)
         {
             _repo = repo;
+            _notification = notification;
         }
 
         // ✅ GET ALL WITH PAGINATION + SEARCH
@@ -133,6 +136,56 @@ namespace PatientBookingSystem.Application.Services
             await _repo.SaveChangesAsync();
 
             return ApiResponse<string>.SuccessResponse("User deleted successfully");
+        }
+
+        public async Task<ApiResponse<string>> RegisterPatientAsync(RegisterRequestDto dto)
+        {
+            // Validate user not exists
+            var exists = await _repo.ExistsAsync(dto.Email, dto.PhoneNumber);
+            if (exists)
+                return ApiResponse<string>.FailResponse("User already exists with this email or phone");
+
+
+            var user = new User
+            {
+                Name = dto.Name,
+                Email = dto.Email,
+                PhoneNumber = dto.PhoneNumber,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Address = dto.Address,
+                Landmark = dto.Landmark,
+                HouseNumber = dto.HouseNumber,
+                Role = dto.Role.ToLower(),
+                IsVerified = true,
+                CreatedAt = DateTime.UtcNow,
+                PinCode = dto.PinCode,
+                IsActive = true
+            };
+            // Send credentials
+            await _repo.AddAsync(user);
+            await _repo.SaveChangesAsync();
+            //await _notification.SendSmsAsync(dto.PhoneNumber, $"Login using Email Or Phone: {user.Email + "/" + user.PhoneNumber} Password: {data.Password}" +
+            //$"Download The APP For Login Using Link : abc.com");
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _notification.SendEmailAsync(user.Email,
+               "Welcome To Patient APP",
+               $"Login using Email Or Phone: {user.Email + "/" + user.PhoneNumber} Password: {dto.Password}" +
+               $"Download The APP For Login Using Link : abc.com");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Email failed: " + ex.Message);
+                    }
+                });
+            }
+
+
+            return ApiResponse<string>.SuccessResponse("User registered successfully");
         }
     }
 }

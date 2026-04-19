@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PatientBookingSystem.Application.DTOs;
 using PatientBookingSystem.Application.DTOs.Common;
 using PatientBookingSystem.Application.Interfaces;
+using PatientBookingSystem.Application.Services;
 
 namespace PatientBookingSystem.API.Controllers
 {
@@ -70,6 +71,29 @@ namespace PatientBookingSystem.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResponse<string>.FailResponse(ex.Message));
+            }
+        }
+
+
+        [HttpPost("register-patient")]
+        public async Task<IActionResult> Register(RegisterRequestDto dto)
+        {
+            try
+            {
+                var result = await _service.RegisterPatientAsync(dto);
+
+                if (!result.IsSuccess)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>
+                {
+                    IsSuccess = false,
+                    Message = ex.Message
+                });
             }
         }
     }
