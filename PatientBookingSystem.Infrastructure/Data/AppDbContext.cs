@@ -16,7 +16,7 @@ namespace PatientBookingSystem.Infrastructure.Data
         public DbSet<User> Users { get; set; }
         public DbSet<OtpVerification> OtpVerifications { get; set; } 
         public DbSet<Service> Services { get; set; }
-        public DbSet<Patient> Patients { get; set; }
-        public DbSet<PatientStatusHistory> PatientStatusHistories { get; set; }
+        public DbSet<PatientAppointment> PatientAppointments { get; set; }
+        public DbSet<PatientAppointmentStatusHistory> PatientAppointmentStatusHistories { get; set; }
     }
 }

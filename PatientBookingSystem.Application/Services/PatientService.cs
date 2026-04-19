@@ -28,7 +28,7 @@ namespace PatientBookingSystem.Application.Services
         {
             var imagePath = await SaveImage(dto.DiseaseImage);
 
-            var patient = new Patient
+            var patient = new PatientAppointment
             {
                 UserId = dto.UserId,
                 ServiceId = dto.ServiceId,
@@ -47,7 +47,7 @@ namespace PatientBookingSystem.Application.Services
 
             await _repo.AddAsync(patient);
             
-            await _historyRepo.AddAsync(new PatientStatusHistory
+            await _historyRepo.AddAsync(new PatientAppointmentStatusHistory
             {
                 PatientId = patient.Id,
                 Status = PatientStatus.Pending,
@@ -182,7 +182,7 @@ namespace PatientBookingSystem.Application.Services
             await _repo.UpdateAsync(patient);
 
             // ✅ Add history
-            await _historyRepo.AddAsync(new PatientStatusHistory
+            await _historyRepo.AddAsync(new PatientAppointmentStatusHistory
             {
                 PatientId = patient.Id,
                 Status = dto.Status,

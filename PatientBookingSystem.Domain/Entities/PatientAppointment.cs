@@ -1,11 +1,8 @@
 ﻿using PatientBookingSystem.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PatientBookingSystem.Domain.Entities
 {
-    public class Patient
+    public class PatientAppointment
     {
         public int Id { get; set; }
 

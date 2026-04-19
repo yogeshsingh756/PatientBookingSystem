@@ -14,24 +14,24 @@ namespace PatientBookingSystem.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task AddAsync(Patient patient)
+        public async Task AddAsync(PatientAppointment patient)
         {
-            await _context.Patients.AddAsync(patient);
+            await _context.PatientAppointments.AddAsync(patient);
         }
 
-        public async Task<List<Patient>> GetAllAsync()
+        public async Task<List<PatientAppointment>> GetAllAsync()
         {
-            return await _context.Patients.ToListAsync();
+            return await _context.PatientAppointments.ToListAsync();
         }
 
-        public async Task<Patient?> GetByIdAsync(int id)
+        public async Task<PatientAppointment?> GetByIdAsync(int id)
         {
-            return await _context.Patients.FindAsync(id);
+            return await _context.PatientAppointments.FindAsync(id);
         }
 
-        public async Task UpdateAsync(Patient patient)
+        public async Task UpdateAsync(PatientAppointment patient)
         {
-            _context.Patients.Update(patient);
+            _context.PatientAppointments.Update(patient);
         }
 
         public async Task SaveChangesAsync()

@@ -16,9 +16,9 @@ namespace PatientBookingSystem.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task AddAsync(PatientStatusHistory history)
+        public async Task AddAsync(PatientAppointmentStatusHistory history)
         {
-            await _context.PatientStatusHistories.AddAsync(history);
+            await _context.PatientAppointmentStatusHistories.AddAsync(history);
         }
 
         public async Task SaveChangesAsync()

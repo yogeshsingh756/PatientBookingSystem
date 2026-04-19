@@ -7,10 +7,10 @@ namespace PatientBookingSystem.Application.Interfaces
 {
     public interface IPatientRepository
     {
-        Task AddAsync(Patient patient);
-        Task<List<Patient>> GetAllAsync();
-        Task<Patient?> GetByIdAsync(int id);
-        Task UpdateAsync(Patient patient);
+        Task AddAsync(PatientAppointment patient);
+        Task<List<PatientAppointment>> GetAllAsync();
+        Task<PatientAppointment?> GetByIdAsync(int id);
+        Task UpdateAsync(PatientAppointment patient);
         Task SaveChangesAsync();
     }
 }

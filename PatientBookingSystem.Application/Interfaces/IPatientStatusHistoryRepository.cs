@@ -7,7 +7,7 @@ namespace PatientBookingSystem.Application.Interfaces
 {
     public interface IPatientStatusHistoryRepository
     {
-        Task AddAsync(PatientStatusHistory history);
+        Task AddAsync(PatientAppointmentStatusHistory history);
         Task SaveChangesAsync();
     }
 }
