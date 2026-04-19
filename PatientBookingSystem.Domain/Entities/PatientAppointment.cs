@@ -7,7 +7,7 @@ namespace PatientBookingSystem.Domain.Entities
         public int Id { get; set; }
 
         public int UserId { get; set; }   // FK from User
-        public int ServiceId { get; set; }
+        public int? ServiceId { get; set; }
         public int? StaffId { get; set; }
 
         public DateTime AppointmentDate { get; set; }
@@ -23,5 +23,7 @@ namespace PatientBookingSystem.Domain.Entities
         public PatientStatus Status { get; set; } = PatientStatus.Pending;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public User User { get; set; }       
+        public Service? Service { get; set; }
     }
 }

@@ -4,9 +4,7 @@ using PatientBookingSystem.Application.DTOs.Common;
 using PatientBookingSystem.Application.Interfaces;
 using PatientBookingSystem.Domain.Entities;
 using PatientBookingSystem.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace PatientBookingSystem.Application.Services
 {
@@ -70,7 +68,7 @@ namespace PatientBookingSystem.Application.Services
             {
                 Id = x.Id,
                 UserId = x.UserId,
-                ServiceId = x.ServiceId,
+                ServiceId = x.ServiceId ??0,
                 StaffId = x.StaffId,
                 AppointmentDate = x.AppointmentDate,
                 SlotTime = x.SlotTime,
@@ -100,7 +98,7 @@ namespace PatientBookingSystem.Application.Services
             {
                 Id = x.Id,
                 UserId = x.UserId,
-                ServiceId = x.ServiceId,
+                ServiceId = x.ServiceId ?? 0,
                 StaffId = x.StaffId,
                 AppointmentDate = x.AppointmentDate,
                 SlotTime = x.SlotTime,
@@ -195,7 +193,63 @@ namespace PatientBookingSystem.Application.Services
             return ApiResponse<string>.SuccessResponse($"Status updated to {dto.Status}");
         }
 
-        // ✅ IMAGE SAVE
+
+        public async Task<ApiResponse<object>> GetAllWithPaginationAsync(PaginationRequestDto dto)
+        {
+            var query = _repo.GetQueryable();
+
+            // 🔍 SEARCH
+            if (!string.IsNullOrEmpty(dto.Search))
+            {
+                var search = dto.Search.ToLower();
+
+                query = query.Where(x =>
+                    x.User.Name.ToLower().Contains(search) ||
+                    x.User.PhoneNumber.Contains(search) ||
+                    x.DiseaseName.ToLower().Contains(search) ||
+                    x.Service.Name.ToLower().Contains(search)
+                );
+            }
+
+            // 📊 TOTAL COUNT
+            var totalRecords = await query.CountAsync();
+
+            // 📉 PAGINATION
+            var data = await query
+                .OrderByDescending(x => x.Id)
+                .Skip((dto.PageNumber - 1) * dto.PageSize)
+                .Take(dto.PageSize)
+                .Select(x => new PatientAppoinmentListDto
+                {
+                    Id = x.Id,
+
+                    UserName = x.User.Name,
+                    PhoneNumber = x.User.PhoneNumber,
+
+                    Address = x.User.Address,
+                    HouseNumber = x.User.HouseNumber,
+                    PinCode = x.User.PinCode,
+
+                    ServiceName = x.Service.Name,
+                    Category = x.Service.Category,
+
+                    AppointmentDate = x.AppointmentDate,
+                    SlotTime = x.SlotTime,
+
+                    DiseaseName = x.DiseaseName,
+                    Status = (int)x.Status
+                })
+                .ToListAsync();
+
+            return ApiResponse<object>.SuccessResponse(new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = dto.PageNumber,
+                PageSize = dto.PageSize,
+                Data = data
+            }, "Appointments fetched successfully");
+        }
+         //✅ IMAGE SAVE
         private async Task<string?> SaveImage(IFormFile? file)
         {
             if (file == null) return null;

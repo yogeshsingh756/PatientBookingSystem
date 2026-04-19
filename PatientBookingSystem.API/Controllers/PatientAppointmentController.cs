@@ -125,6 +125,29 @@ namespace PatientBookingSystem.API.Controllers
                 return StatusCode(500, ApiResponse<string>.FailResponse("Something went wrong"));
             }
         }
+
+        [HttpPost("list")]
+        public async Task<IActionResult> GetAllWithPagination([FromBody] PaginationRequestDto dto)
+        {
+            try
+            {
+                var result = await _service.GetAllWithPaginationAsync(dto);
+
+                if (!result.IsSuccess)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>
+                {
+                    IsSuccess = false,
+                    Message = "Something went wrong",
+                    Data = ex.Message
+                });
+            }
+        }
     }
 }
 

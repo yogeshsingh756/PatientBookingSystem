@@ -24,5 +24,6 @@ namespace PatientBookingSystem.Application.Interfaces
         Task<ApiResponse<string>> DeleteAsync(int id);
 
         Task<ApiResponse<string>> ChangeStatusAsync(ChangePatientStatusDto dto);
+        Task<ApiResponse<object>> GetAllWithPaginationAsync(PaginationRequestDto dto);
     }
 }

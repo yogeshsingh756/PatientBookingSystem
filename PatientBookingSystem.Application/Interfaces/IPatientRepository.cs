@@ -12,5 +12,6 @@ namespace PatientBookingSystem.Application.Interfaces
         Task<PatientAppointment?> GetByIdAsync(int id);
         Task UpdateAsync(PatientAppointment patient);
         Task SaveChangesAsync();
+        IQueryable<PatientAppointment> GetQueryable();
     }
 }
