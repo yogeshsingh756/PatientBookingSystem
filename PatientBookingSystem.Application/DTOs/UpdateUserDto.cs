@@ -13,5 +13,7 @@ namespace PatientBookingSystem.Application.DTOs
         public string Landmark { get; set; }
         public string HouseNumber { get; set; }
         public string PinCode { get; set; }
+        public bool IsActive { get; set; }
+        public string Email { get; set; }
     }
 }

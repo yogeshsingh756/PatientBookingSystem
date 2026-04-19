@@ -110,6 +110,8 @@ namespace PatientBookingSystem.Application.Services
             user.Landmark = dto.Landmark;
             user.HouseNumber = dto.HouseNumber;
             user.PinCode = dto.PinCode;
+            user.IsActive = dto.IsActive;
+            user.Email = dto.Email;
 
             await _repo.UpdateAsync(user);
             await _repo.SaveChangesAsync();

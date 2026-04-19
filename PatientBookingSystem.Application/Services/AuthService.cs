@@ -106,7 +106,8 @@ namespace PatientBookingSystem.Application.Services
                 Role = otpData.Role,
                 IsVerified = true,
                 CreatedAt = DateTime.UtcNow,
-                PinCode = otpData.PinCode
+                PinCode = otpData.PinCode,
+                IsActive = true
             };
             // Send credentials
             await _userRepo.AddAsync(user);
