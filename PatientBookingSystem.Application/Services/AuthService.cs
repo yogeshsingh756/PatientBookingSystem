@@ -141,12 +141,12 @@ namespace PatientBookingSystem.Application.Services
 
             if (user == null)
                 return ApiResponse<LoginResponseDto>.FailResponse("User not found");
-            if (!user.IsActive)
-                return ApiResponse<LoginResponseDto>.FailResponse("User account is inactive. Please contact support.");
-
 
             if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return ApiResponse<LoginResponseDto>.FailResponse("Invalid password");
+
+            if (!user.IsActive)
+                return ApiResponse<LoginResponseDto>.FailResponse("User account is inactive. Please contact support.");
 
             var token = _tokenService.GenerateToken(user);
             var response = new LoginResponseDto
