@@ -8,11 +8,11 @@ namespace PatientBookingSystem.API.Controllers
 {
     [ApiController]
     [Route("api/patient")]
-    public class PatientController : ControllerBase
+    public class PatientAppointmentController : ControllerBase
     {
         private readonly IPatientService _service;
 
-        public PatientController(IPatientService service)
+        public PatientAppointmentController(IPatientService service)
         {
             _service = service;
         }
