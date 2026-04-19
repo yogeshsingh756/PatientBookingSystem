@@ -24,5 +24,6 @@ namespace PatientBookingSystem.Application.DTOs
         public string DiseaseName { get; set; }
 
         public int Status { get; set; }
+        public int? NoOfDays { get; set; }
     }
 }

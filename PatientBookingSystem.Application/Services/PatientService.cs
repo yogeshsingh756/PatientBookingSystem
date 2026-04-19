@@ -237,7 +237,8 @@ namespace PatientBookingSystem.Application.Services
                     SlotTime = x.SlotTime,
 
                     DiseaseName = x.DiseaseName,
-                    Status = (int)x.Status
+                    Status = (int)x.Status,
+                    NoOfDays = x.NoOfDays
                 })
                 .ToListAsync();
 
