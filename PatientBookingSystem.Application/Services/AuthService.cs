@@ -170,6 +170,8 @@ namespace PatientBookingSystem.Application.Services
 
             if (user == null)
                 return ApiResponse<string>.FailResponse("User not found");
+            if (!user.IsActive)
+                return ApiResponse<string>.FailResponse("User account is inactive. Please contact support.");
 
             var otp = new Random().Next(100000, 999999).ToString();
 
@@ -227,6 +229,8 @@ namespace PatientBookingSystem.Application.Services
 
             if (user == null)
                 return ApiResponse<LoginResponseDto>.FailResponse("User not found");
+            if (!user.IsActive)
+                return ApiResponse<LoginResponseDto>.FailResponse("User account is inactive. Please contact support.");
 
             // TODO: Generate JWT
             var token = _tokenService.GenerateToken(user);
