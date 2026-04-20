@@ -53,7 +53,7 @@ namespace PatientBookingSystem.Application.Services
             });
             await _repo.SaveChangesAsync();
 
-            return ApiResponse<string>.SuccessResponse("Patient created successfully");
+            return ApiResponse<string>.SuccessResponse("Patient Appoinment created successfully");
         }
 
         // ✅ GET ALL
@@ -110,7 +110,7 @@ namespace PatientBookingSystem.Application.Services
                 Status = x.Status.ToString()
             };
 
-            return ApiResponse<PatientDto>.SuccessResponse(data, "Patient fetched successfully");
+            return ApiResponse<PatientDto>.SuccessResponse(data, "Patient Appoinment fetched successfully");
         }
 
         // ✅ UPDATE
@@ -137,7 +137,7 @@ namespace PatientBookingSystem.Application.Services
             await _repo.UpdateAsync(patient);
             await _repo.SaveChangesAsync();
 
-            return ApiResponse<string>.SuccessResponse("Patient updated successfully");
+            return ApiResponse<string>.SuccessResponse("Patient Appoinment updated successfully");
         }
 
         // ✅ DELETE (SOFT DELETE STYLE VIA STATUS)
