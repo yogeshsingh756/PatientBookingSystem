@@ -9,5 +9,6 @@ namespace PatientBookingSystem.Application.Interfaces
     {
         Task AddAsync(PatientAppointmentStatusHistory history);
         Task SaveChangesAsync();
+        IQueryable<PatientAppointmentStatusHistory> GetQueryable();
     }
 }

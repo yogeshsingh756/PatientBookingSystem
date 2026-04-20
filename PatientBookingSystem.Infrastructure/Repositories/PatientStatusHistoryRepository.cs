@@ -1,4 +1,5 @@
-﻿using PatientBookingSystem.Application.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using PatientBookingSystem.Application.Interfaces;
 using PatientBookingSystem.Domain.Entities;
 using PatientBookingSystem.Infrastructure.Data;
 using System;
@@ -24,6 +25,12 @@ namespace PatientBookingSystem.Infrastructure.Repositories
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+        public IQueryable<PatientAppointmentStatusHistory> GetQueryable()
+        {
+            return _context.PatientAppointmentStatusHistories
+                .Include(x => x.PatientAppointment)
+                .AsQueryable();
         }
     }
 }

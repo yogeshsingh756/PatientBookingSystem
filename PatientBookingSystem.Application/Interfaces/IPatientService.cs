@@ -14,6 +14,9 @@ namespace PatientBookingSystem.Application.Interfaces
         //  GET ALL PATIENTS
         Task<ApiResponse<List<PatientDto>>> GetAllAsync();
 
+        // Get All Appoinments for a specific patient
+        Task<ApiResponse<List<PatientUserAppointmentDto>>> GetAppoinmentsByUserId(int userId);
+
         //  GET BY ID
         Task<ApiResponse<PatientDto>> GetByIdAsync(int id);
 

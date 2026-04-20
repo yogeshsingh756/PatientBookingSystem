@@ -15,5 +15,6 @@ namespace PatientBookingSystem.Domain.Entities
         public int? UpdatedByUserId { get; set; } // optional
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public PatientAppointment? PatientAppointment { get; set; }
     }
 }

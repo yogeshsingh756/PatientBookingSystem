@@ -83,6 +83,57 @@ namespace PatientBookingSystem.Application.Services
             return ApiResponse<List<PatientDto>>.SuccessResponse(result, "Patients fetched successfully");
         }
 
+        // Get All Appoinments For Specific Users
+
+        public async Task<ApiResponse<List<PatientUserAppointmentDto>>> GetAppoinmentsByUserId(int userId)
+        {
+            var request = _httpContext.HttpContext?.Request;
+            var baseUrl = request != null ? $"{request.Scheme}://{request.Host}" : "";
+
+            var data = await _repo.GetQueryable()
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.Id)
+                .Select(x => new PatientUserAppointmentDto
+                {
+                    Id = x.Id,
+                    UserId = x.UserId,
+                    UserName = x.User.Name ?? string.Empty,
+                    Email = x.User.Email ?? string.Empty,
+                    PhoneNumber = x.User.PhoneNumber ?? string.Empty,
+                    Address = x.User.Address ?? string.Empty,
+                    Landmark = x.User.Landmark ?? string.Empty,
+                    HouseNumber = x.User.HouseNumber ?? string.Empty,
+                    PinCode = x.User.PinCode ?? string.Empty,
+                    DischargeDate = x.DischargeDate ?? null,
+                    DoctorPrescription =  x.DoctorPrescription ?? string.Empty,
+                    NoOfDays = x.NoOfDays ?? 0,
+                    Remarks = _historyRepo.GetQueryable()
+                        .Where(h => h.PatientId == x.Id)
+                        .OrderByDescending(h => h.Id)
+                        .Select(h => h.Remarks)
+                        .FirstOrDefault() ?? string.Empty,
+                    ServiceId = x.ServiceId ?? 0,
+                    StaffId = x.StaffId ?? 0,
+                    StaffName = string.Empty, // Assuming you have a way to get staff name if needed
+                    AppointmentDate = x.AppointmentDate,
+                    SlotTime = x.SlotTime,
+                    DiseaseName = x.DiseaseName,
+                    ServiceName = x.Service.Name ?? string.Empty,
+                    DiseaseImageUrl = x.DiseaseImageUrl != null
+                        ? baseUrl + x.DiseaseImageUrl
+                        : null,
+                    Status = x.Status.ToString() ?? string.Empty,
+                })
+                .ToListAsync();
+
+            if (data == null || data.Count == 0)
+                return ApiResponse<List<PatientUserAppointmentDto>>
+                    .SuccessResponse(new List<PatientUserAppointmentDto>(), "No appointments found");
+
+            return ApiResponse<List<PatientUserAppointmentDto>>
+                .SuccessResponse(data, "Appointments fetched successfully");
+        }
+
         // ✅ GET BY ID
         public async Task<ApiResponse<PatientDto>> GetByIdAsync(int id)
         {
