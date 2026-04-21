@@ -18,6 +18,7 @@ namespace PatientBookingSystem.Application.DTOs
         public string Landmark { get; set; }
         public string HouseNumber { get; set; }
         public string PinCode { get; set; }
+        public bool IsActive { get; set; }
 
         // 🔹 STAFF
         public int StaffType { get; set; }
@@ -34,5 +35,6 @@ namespace PatientBookingSystem.Application.DTOs
 
         // Optional new documents
         public List<IFormFile>? Documents { get; set; }
+        public bool IsAvailable { get; set; }
     }
 }

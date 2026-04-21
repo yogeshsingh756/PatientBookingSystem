@@ -239,6 +239,7 @@ namespace PatientBookingSystem.Application.Services
                 user.Landmark = dto.Landmark;
                 user.HouseNumber = dto.HouseNumber;
                 user.PinCode = dto.PinCode;
+                user.IsActive = dto.IsActive;
 
                 await _userRepo.UpdateAsync(user);
 
@@ -250,6 +251,7 @@ namespace PatientBookingSystem.Application.Services
                 staff.ConsultationFee = dto.ConsultationFee;
                 staff.Salary = dto.Salary;
                 staff.LicenseNumber = dto.LicenseNumber;
+                staff.IsAvailable = dto.IsAvailable;
 
                 if (dto.ProfileImage != null)
                     staff.ProfileImageUrl = await SaveFile(dto.ProfileImage, "staff");
