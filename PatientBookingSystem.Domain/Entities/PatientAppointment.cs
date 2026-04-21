@@ -25,5 +25,6 @@ namespace PatientBookingSystem.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public User User { get; set; }       
         public Service? Service { get; set; }
+        public Staff? Staff { get; set; }
     }
 }

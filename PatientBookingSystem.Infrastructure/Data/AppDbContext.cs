@@ -18,5 +18,7 @@ namespace PatientBookingSystem.Infrastructure.Data
         public DbSet<Service> Services { get; set; }
         public DbSet<PatientAppointment> PatientAppointments { get; set; }
         public DbSet<PatientAppointmentStatusHistory> PatientAppointmentStatusHistories { get; set; }
+        public DbSet<Staff> Staffs { get; set; }
+        public DbSet<StaffDocument> StaffDocuments { get; set; }
     }
 }
