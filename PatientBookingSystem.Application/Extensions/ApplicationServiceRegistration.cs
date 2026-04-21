@@ -16,6 +16,7 @@ namespace PatientBookingSystem.Application.Extensions
             services.AddScoped<IServiceService, ServiceService>();
             services.AddScoped<IPatientService, PatientService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IStaffService, StaffService>();
             // Register application services here
             return services;
         }

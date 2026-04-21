@@ -60,15 +60,14 @@ namespace PatientBookingSystem.Application.Services
                 .ToList();
 
             return ApiResponse<PaginatedResponse<UserDto>>.SuccessResponse(
-                new PaginatedResponse<UserDto>
-                {
-                    Data = data,
-                    TotalRecords = totalRecords,
-                    PageNumber = dto.PageNumber,
-                    PageSize = dto.PageSize
-                },
-                "Patients fetched successfully"
-            );
+    new PaginatedResponse<UserDto>(
+        data,
+        totalRecords,
+        dto.PageNumber,
+        dto.PageSize
+    ),
+    "Patients fetched successfully"
+);
         }
 
         // ✅ GET BY ID

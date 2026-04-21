@@ -28,6 +28,9 @@ namespace PatientBookingSystem.Infrastructure.Extensions
             services.AddScoped<IServiceRepository, ServiceRepository>();
             services.AddScoped<IPatientRepository, PatientRepository>();
             services.AddScoped<IPatientStatusHistoryRepository, PatientStatusHistoryRepository>();
+            services.AddScoped<IStaffRepository, StaffRepository>();
+            services.AddScoped<IStaffDocumentRepository, StaffDocumentRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             // Services
             services.AddScoped<INotificationService, NotificationService>();
             // Settings
