@@ -14,10 +14,10 @@ namespace PatientBookingSystem.Domain.Entities
 
         public string PasswordHash { get; set; }
 
-        public string Address { get; set; }
-        public string Landmark { get; set; }
-        public string HouseNumber { get; set; }
-        public string PinCode { get; set; }
+        public string? Address { get; set; }
+        public string? Landmark { get; set; }
+        public string? HouseNumber { get; set; }
+        public string? PinCode { get; set; }
 
         public string Role { get; set; }
 
