@@ -42,14 +42,14 @@ namespace PatientBookingSystem.Application.Services
                 var user = new User
                 {
                     Name = dto.Name,
-                    Email = dto.Email,
+                    Email = dto.Email ?? string.Empty,
                     PhoneNumber = dto.PhoneNumber,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
 
-                    Address = dto.Address,
-                    Landmark = dto.Landmark,
-                    HouseNumber = dto.HouseNumber,
-                    PinCode = dto.PinCode,
+                    Address = dto.Address ?? string.Empty,
+                    Landmark = dto.Landmark ?? string.Empty,
+                    HouseNumber = dto.HouseNumber ?? string.Empty,
+                    PinCode = dto.PinCode ?? string.Empty,
 
                     Role = "Staff",
                     IsVerified = true,
@@ -233,12 +233,12 @@ namespace PatientBookingSystem.Application.Services
 
                 // 🔹 USER UPDATE
                 user.Name = dto.Name;
-                user.Email = dto.Email;
+                user.Email = dto.Email ?? string.Empty;
                 user.PhoneNumber = dto.PhoneNumber;
-                user.Address = dto.Address;
-                user.Landmark = dto.Landmark;
-                user.HouseNumber = dto.HouseNumber;
-                user.PinCode = dto.PinCode;
+                user.Address = dto.Address ?? string.Empty;
+                user.Landmark = dto.Landmark ?? string.Empty;
+                user.HouseNumber = dto.HouseNumber ?? string.Empty;
+                user.PinCode = dto.PinCode ?? string.Empty;
                 user.IsActive = dto.IsActive;
 
                 await _userRepo.UpdateAsync(user);
