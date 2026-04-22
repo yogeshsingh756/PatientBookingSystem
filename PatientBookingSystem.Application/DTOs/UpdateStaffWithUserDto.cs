@@ -11,13 +11,13 @@ namespace PatientBookingSystem.Application.DTOs
 
         // 🔹 USER
         public string Name { get; set; }
-        public string Email { get; set; }
+        public string? Email { get; set; }
         public string PhoneNumber { get; set; }
 
-        public string Address { get; set; } = string.Empty;
-        public string Landmark { get; set; } = string.Empty;
-        public string HouseNumber { get; set; } = string.Empty;
-        public string PinCode { get; set; } = string.Empty;
+        public string? Address { get; set; } = string.Empty;
+        public string? Landmark { get; set; } = string.Empty;
+        public string? HouseNumber { get; set; } = string.Empty;
+        public string? PinCode { get; set; } = string.Empty;
         public bool IsActive { get; set; }
 
         // 🔹 STAFF
