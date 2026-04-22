@@ -9,11 +9,11 @@ namespace PatientBookingSystem.Application.DTOs
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
 
-        public string Address { get; set; }
-        public string Landmark { get; set; }
-        public string HouseNumber { get; set; }
-        public string PinCode { get; set; }
+        public string? Address { get; set; }
+        public string? Landmark { get; set; }
+        public string? HouseNumber { get; set; }
+        public string? PinCode { get; set; }
         public bool IsActive { get; set; }
-        public string Email { get; set; }
+        public string? Email { get; set; }
     }
 }

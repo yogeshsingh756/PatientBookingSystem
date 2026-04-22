@@ -15,10 +15,12 @@ namespace PatientBookingSystem.Infrastructure.Repositories
         }
 
         // ✅ Check if user exists
-        public async Task<bool> ExistsAsync(string email, string phone)
+        public async Task<bool> ExistsAsync(string? email, string phone)
         {
-            return await _context.Users
-                .AnyAsync(u => u.Email == email || u.PhoneNumber == phone);
+            return await _context.Users.AnyAsync(u =>
+                (!string.IsNullOrEmpty(email) && u.Email == email) ||
+                (!string.IsNullOrEmpty(phone) && u.PhoneNumber == phone)
+            );
         }
 
         // ✅ Add new user
