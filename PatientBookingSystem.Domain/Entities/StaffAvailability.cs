@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
 
-        public int? StaffId { get; set; }
+        public int StaffId { get; set; }
 
         public DayOfWeek Day { get; set; }   // Monday, Tuesday...
 
@@ -16,6 +16,6 @@
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // 🔗 Navigation
-        public Staff? Staff { get; set; }
+        public Staff Staff { get; set; }
     }
 }
