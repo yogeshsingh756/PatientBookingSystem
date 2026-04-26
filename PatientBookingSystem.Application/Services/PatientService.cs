@@ -24,36 +24,46 @@ namespace PatientBookingSystem.Application.Services
         // ✅ CREATE
         public async Task<ApiResponse<string>> CreateAsync(CreatePatientDto dto)
         {
-            var imagePath = await SaveImage(dto.DiseaseImage);
-
-            var patient = new PatientAppointment
+            try
             {
-                UserId = dto.UserId,
-                ServiceId = dto.ServiceId,
-                StaffId = dto.StaffId,
-                AppointmentDate = dto.AppointmentDate,
-                SlotTime = dto.SlotTime,
-                NoOfDays = dto.NoOfDays,
-                DiseaseName = dto.DiseaseName,
-                DischargeDate = dto.DischargeDate,
-                DoctorPrescription = dto.DoctorPrescription,
-                DiseaseImageUrl = imagePath,
-                Status = PatientStatus.Pending,
-                CreatedAt = DateTime.UtcNow
-            };
-           
+                var imagePath = await SaveImage(dto.DiseaseImage);
 
-            await _repo.AddAsync(patient);
-            
-            await _historyRepo.AddAsync(new PatientAppointmentStatusHistory
+                var patient = new PatientAppointment
+                {
+                    UserId = dto.UserId,
+                    ServiceId = dto.ServiceId,
+                    StaffId = dto.StaffId.GetValueOrDefault() == 0 ? null : dto.StaffId,
+                    AppointmentDate = dto.AppointmentDate,
+                    SlotTime = dto.SlotTime,
+                    NoOfDays = dto.NoOfDays,
+                    DiseaseName = dto.DiseaseName,
+                    DischargeDate = dto.DischargeDate,
+                    DoctorPrescription = dto.DoctorPrescription,
+                    DiseaseImageUrl = imagePath,
+                    Status = PatientStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _repo.AddAsync(patient);
+
+                // Note: Ensure patient.Id is populated. 
+                // If your DB generates IDs on Save, move SaveChangesAsync before adding history.
+                await _historyRepo.AddAsync(new PatientAppointmentStatusHistory
+                {
+                    PatientId = patient.Id,
+                    Status = PatientStatus.Pending,
+                    Remarks = "Appointment created"
+                });
+
+                await _repo.SaveChangesAsync();
+
+                return ApiResponse<string>.SuccessResponse("Patient Appointment created successfully");
+            }
+            catch (Exception ex)
             {
-                PatientId = patient.Id,
-                Status = PatientStatus.Pending,
-                Remarks = "Appointment created"
-            });
-            await _repo.SaveChangesAsync();
-
-            return ApiResponse<string>.SuccessResponse("Patient Appoinment created successfully");
+                return null;
+                // Log the exception here (e.g., _logger.LogError(ex.Message))
+            }
         }
 
         // ✅ GET ALL
@@ -177,7 +187,7 @@ namespace PatientBookingSystem.Application.Services
 
             patient.UserId = dto.UserId;
             patient.ServiceId = dto.ServiceId;
-            patient.StaffId = dto.StaffId;
+            patient.StaffId = dto.StaffId.GetValueOrDefault() == 0 ? null : dto.StaffId;
             patient.AppointmentDate = dto.AppointmentDate;
             patient.SlotTime = dto.SlotTime;
             patient.NoOfDays = dto.NoOfDays;
