@@ -1,0 +1,90 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [prod]
+  push:
+    branches: [prod]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  BUILD_CONFIGURATION: Release
+  PROJECT_PATH: PatientBookingSystem.API/PatientBookingSystem.API.csproj
+  PUBLISH_DIR: publish
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} --no-restore
+
+      - name: Test
+        run: |
+          if find . -name '*Tests.csproj' -o -name '*Test.csproj' | grep -q .; then
+            dotnet test --configuration ${{ env.BUILD_CONFIGURATION }} --no-build
+          else
+            echo 'No test project found; skipping.'
+          fi
+
+      - name: Publish
+        run: dotnet publish ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -o ${{ env.PUBLISH_DIR }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-publish
+          path: ${{ env.PUBLISH_DIR }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    environment: production
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-publish
+          path: publish
+
+      - name: Setup SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s
+' "$DEPLOY_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+
+      - name: Sync files
+        run: |
+          rsync -az --delete -e "ssh -p ${DEPLOY_PORT:-22}" publish/ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+
+      - name: Restart service
+        run: |
+          ssh -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "sudo systemctl daemon-reload && sudo systemctl restart patientbookingsystem && sudo systemctl status patientbookingsystem --no-pager -l"
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
