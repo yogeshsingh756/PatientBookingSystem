@@ -33,5 +33,6 @@ namespace PatientBookingSystem.Application.DTOs
         public string PhoneNumber { get; set; } = string.Empty;
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
+        public string? AppointmentAddress { get; set; }
     }
 }

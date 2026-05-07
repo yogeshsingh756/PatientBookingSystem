@@ -24,5 +24,6 @@ namespace PatientBookingSystem.Application.DTOs
         public string Status { get; set; } = null!;
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
+        public string? AppointmentAddress { get; set; }
     }
 }
