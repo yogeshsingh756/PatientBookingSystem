@@ -18,6 +18,7 @@ namespace PatientBookingSystem.Application.DTOs
         // Optional
         public string? DiseaseName { get; set; }
         public DateTime? DischargeDate { get; set; }
+        public IFormFile? DoctorPrescriptionImage { get; set; }
         public string? DoctorPrescription { get; set; }
         public IFormFile? DiseaseImage { get; set; }
     }

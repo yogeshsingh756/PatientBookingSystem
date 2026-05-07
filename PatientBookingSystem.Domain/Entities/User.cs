@@ -26,5 +26,6 @@ namespace PatientBookingSystem.Domain.Entities
         public DateTime CreatedAt { get; set; }
 
         public bool IsActive { get; set; } = false;
+        public string? Gender { get; set; }
     }
 }

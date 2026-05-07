@@ -55,7 +55,8 @@ namespace PatientBookingSystem.Application.Services
                 ExpiryTime = DateTime.UtcNow.AddMinutes(5),
                 IsUsed = false,
                 CreatedAt = DateTime.UtcNow,
-                PinCode = dto.PinCode
+                PinCode = dto.PinCode,
+                Gender = dto.Gender
             };
 
             // Save OTP (temporary storage)
@@ -107,7 +108,8 @@ namespace PatientBookingSystem.Application.Services
                 IsVerified = true,
                 CreatedAt = DateTime.UtcNow,
                 PinCode = otpData.PinCode,
-                IsActive = true
+                IsActive = true,
+                Gender = otpData.Gender
             };
             // Send credentials
             await _userRepo.AddAsync(user);
@@ -161,7 +163,8 @@ namespace PatientBookingSystem.Application.Services
                 HouseNumber = user.HouseNumber,
                 Landmark = user.Landmark,
                 IsVerified = user.IsVerified,
-                Pincode = user.PinCode
+                Pincode = user.PinCode,
+                Gender = user.Gender
             };
             return ApiResponse<LoginResponseDto>.SuccessResponse(response, "Login successful");
         }
@@ -191,7 +194,8 @@ namespace PatientBookingSystem.Application.Services
                 Password = user.PasswordHash,
                 Email = user.Email,
                 Role = user.Role,
-                PinCode = user.PinCode
+                PinCode = user.PinCode,
+                Gender = user.Gender
             };
 
             await _otpRepository.SaveOtpAsync(otpEntity);
@@ -248,7 +252,8 @@ namespace PatientBookingSystem.Application.Services
                 HouseNumber = user.HouseNumber,
                 Landmark = user.Landmark,
                 IsVerified = user.IsVerified,
-                                Pincode = user.PinCode
+                                Pincode = user.PinCode,
+                                Gender = user.Gender
             };
 
             return ApiResponse<LoginResponseDto>.SuccessResponse(response, "Login successful via OTP");

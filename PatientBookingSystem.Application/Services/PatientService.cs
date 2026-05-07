@@ -27,6 +27,7 @@ namespace PatientBookingSystem.Application.Services
             try
             {
                 var imagePath = await SaveImage(dto.DiseaseImage);
+                var prescriptionImagePath = await SaveImage(dto.DoctorPrescriptionImage);
 
                 var patient = new PatientAppointment
                 {
@@ -41,7 +42,8 @@ namespace PatientBookingSystem.Application.Services
                     DoctorPrescription = dto.DoctorPrescription,
                     DiseaseImageUrl = imagePath,
                     Status = PatientStatus.Pending,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    DoctorPrescriptionImageUrl = prescriptionImagePath
                 };
 
                 await _repo.AddAsync(patient);
@@ -86,6 +88,7 @@ namespace PatientBookingSystem.Application.Services
                 DiseaseName = x.DiseaseName,
                 DischargeDate = x.DischargeDate,
                 DoctorPrescription = x.DoctorPrescription,
+                DoctorPrescriptionImageUrl = x.DoctorPrescriptionImageUrl != null ? baseUrl + x.DoctorPrescriptionImageUrl : null,
                 DiseaseImageUrl = x.DiseaseImageUrl != null ? baseUrl + x.DiseaseImageUrl : null,
                 Status = x.Status.ToString()
             }).ToList();
@@ -129,6 +132,9 @@ namespace PatientBookingSystem.Application.Services
                     SlotTime = x.SlotTime,
                     DiseaseName = x.DiseaseName,
                     ServiceName = x.Service.Name ?? string.Empty,
+                    DoctorPrescriptionImageUrl = x.DoctorPrescriptionImageUrl != null
+                        ? baseUrl + x.DoctorPrescriptionImageUrl
+                        : null,
                     DiseaseImageUrl = x.DiseaseImageUrl != null
                         ? baseUrl + x.DiseaseImageUrl
                         : null,
@@ -167,6 +173,7 @@ namespace PatientBookingSystem.Application.Services
                 DiseaseName = x.DiseaseName,
                 DischargeDate = x.DischargeDate,
                 DoctorPrescription = x.DoctorPrescription,
+                DoctorPrescriptionImageUrl = x.DoctorPrescriptionImageUrl != null ? baseUrl + x.DoctorPrescriptionImageUrl : null,
                 DiseaseImageUrl = x.DiseaseImageUrl != null ? baseUrl + x.DiseaseImageUrl : null,
                 Status = x.Status.ToString()
             };
@@ -184,8 +191,10 @@ namespace PatientBookingSystem.Application.Services
 
             if (dto.DiseaseImage != null)
                 patient.DiseaseImageUrl = await SaveImage(dto.DiseaseImage);
+            if (dto.DoctorPrescriptionImage != null)
+                patient.DoctorPrescriptionImageUrl = await SaveImage(dto.DoctorPrescriptionImage);
 
-            patient.UserId = dto.UserId;
+                patient.UserId = dto.UserId;
             patient.ServiceId = dto.ServiceId;
             patient.StaffId = dto.StaffId.GetValueOrDefault() == 0 ? null : dto.StaffId;
             patient.AppointmentDate = dto.AppointmentDate;

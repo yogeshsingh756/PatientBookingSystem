@@ -18,6 +18,7 @@ namespace PatientBookingSystem.Domain.Entities
         public string? DiseaseName { get; set; }
         public DateTime? DischargeDate { get; set; }
         public string? DoctorPrescription { get; set; }
+        public string? DoctorPrescriptionImageUrl { get; set; }
         public string? DiseaseImageUrl { get; set; }
 
         public PatientStatus Status { get; set; } = PatientStatus.Pending;

@@ -21,5 +21,6 @@ namespace PatientBookingSystem.Application.DTOs
         public bool IsVerified { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public string? Gender { get; set; }
     }
 }

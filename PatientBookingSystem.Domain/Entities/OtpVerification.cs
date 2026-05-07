@@ -25,5 +25,6 @@ namespace PatientBookingSystem.Domain.Entities
         public bool IsUsed { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public string? Gender { get; set; }
     }
 }

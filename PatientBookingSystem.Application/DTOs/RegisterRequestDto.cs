@@ -18,5 +18,6 @@ namespace PatientBookingSystem.Application.DTOs
         public string? HouseNumber { get; set; }
 
         public string Role { get; set; }
+        public string? Gender {get;set;}
     }
 }

@@ -18,6 +18,7 @@ namespace PatientBookingSystem.Application.DTOs
         public string? DiseaseName { get; set; }
         public DateTime? DischargeDate { get; set; }
         public string? DoctorPrescription { get; set; }
+        public string? DoctorPrescriptionImageUrl { get; set; }
         public string? DiseaseImageUrl { get; set; }
 
         public string Status { get; set; } = null!;
