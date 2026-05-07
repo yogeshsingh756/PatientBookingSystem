@@ -66,5 +66,78 @@ namespace PatientBookingSystem.Application.Services
 
             return ApiResponse<List<StaffAvailabilityDto>>.SuccessResponse(data, "Fetched");
         }
+
+        public async Task<ApiResponse<StaffAvailabilityDto>> GetByIdAsync(int id)
+        {
+            var entity = await _repo.GetQueryable()
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
+
+            if (entity == null)
+                return ApiResponse<StaffAvailabilityDto>.FailResponse("Availability not found");
+
+            var result = new StaffAvailabilityDto
+            {
+                Id = entity.Id,
+                StaffId = entity.StaffId,
+                Day = entity.Day,
+                StartTime = entity.StartTime,
+                EndTime = entity.EndTime
+            };
+
+            return ApiResponse<StaffAvailabilityDto>.SuccessResponse(result, "Fetched successfully");
+        }
+
+        public async Task<ApiResponse<string>> UpdateAsync(UpdateStaffAvailabilityDto dto)
+        {
+            var entity = await _repo.GetQueryable()
+                .FirstOrDefaultAsync(x => x.Id == dto.Id && x.IsActive);
+
+            if (entity == null)
+                return ApiResponse<string>.FailResponse("Availability not found");
+
+            // ❌ Validate time
+            if (dto.StartTime >= dto.EndTime)
+                return ApiResponse<string>.FailResponse("Start time must be less than end time");
+
+            // ❌ Overlap check (exclude current record)
+            var exists = await _repo.GetQueryable().AnyAsync(x =>
+                x.Id != dto.Id &&
+                x.StaffId == dto.StaffId &&
+                x.Day == dto.Day &&
+                x.IsActive &&
+                (
+                    dto.StartTime < x.EndTime &&
+                    dto.EndTime > x.StartTime
+                )
+            );
+
+            if (exists)
+                return ApiResponse<string>.FailResponse("Time slot overlaps");
+
+            // ✅ Update
+            entity.StaffId = dto.StaffId;
+            entity.Day = dto.Day;
+            entity.StartTime = dto.StartTime;
+            entity.EndTime = dto.EndTime;
+
+            await _repo.SaveChangesAsync();
+
+            return ApiResponse<string>.SuccessResponse("Availability updated");
+        }
+
+        public async Task<ApiResponse<string>> DeleteAsync(int id)
+        {
+            var entity = await _repo.GetQueryable()
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
+
+            if (entity == null)
+                return ApiResponse<string>.FailResponse("Availability not found");
+
+            entity.IsActive = false;
+
+            await _repo.SaveChangesAsync();
+
+            return ApiResponse<string>.SuccessResponse("Availability deleted");
+        }
     }
 }
