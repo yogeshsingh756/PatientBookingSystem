@@ -55,7 +55,8 @@ namespace PatientBookingSystem.Application.Services
                     Role = x.Role,
                     IsVerified = x.IsVerified,
                     IsActive = x.IsActive,
-                    CreatedAt = x.CreatedAt
+                    CreatedAt = x.CreatedAt,
+                    Gender = x.Gender
                 })
                 .ToList();
 
@@ -91,7 +92,8 @@ namespace PatientBookingSystem.Application.Services
                 Role = user.Role,
                 IsVerified = user.IsVerified,
                 IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt
+                CreatedAt = user.CreatedAt,
+                Gender = user.Gender
             };
 
             return ApiResponse<UserDto>.SuccessResponse(result);
@@ -114,6 +116,7 @@ namespace PatientBookingSystem.Application.Services
             user.PinCode = dto.PinCode;
             user.IsActive = dto.IsActive;
             user.Email = dto.Email;
+            user.Gender = dto.Gender;
 
             await _repo.UpdateAsync(user);
             await _repo.SaveChangesAsync();
@@ -158,7 +161,8 @@ namespace PatientBookingSystem.Application.Services
                 IsVerified = true,
                 CreatedAt = DateTime.UtcNow,
                 PinCode = dto.PinCode,
-                IsActive = true
+                IsActive = true,
+                Gender = dto.Gender
             };
             // Send credentials
             await _repo.AddAsync(user);
