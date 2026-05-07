@@ -58,7 +58,8 @@ builder.Services.AddCors(options =>
                 "http://localhost:5174",
                 "https://erp.kpmic.in",
                 "http://localhost:5175",
-                "https://patient-appointment-admin-app.onrender.com"
+                "https://patient-appointment-admin-app.onrender.com",
+            "https://admin.homecarenursing.cloud"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
