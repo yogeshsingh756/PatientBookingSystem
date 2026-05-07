@@ -19,6 +19,7 @@ namespace PatientBookingSystem.Application.DTOs
         public string HouseNumber { get; set; }
         public string PinCode { get; set; }
         public bool IsActive { get; set; } = false;
+        public string? Gender { get; set; } = string.Empty;
 
         // 🔹 Staff Info
         public int StaffType { get; set; }

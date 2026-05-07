@@ -54,7 +54,8 @@ namespace PatientBookingSystem.Application.Services
                     Role = "Staff",
                     IsVerified = true,
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    Gender = dto.Gender ?? string.Empty,
                 };
 
                 await _userRepo.AddAsync(user);
@@ -142,6 +143,7 @@ namespace PatientBookingSystem.Application.Services
                 Landmark = x.User.Landmark,
                 PinCode = x.User.PinCode,
                 IsActive = x.User.IsActive,
+                Gender = x.User.Gender,
 
                 StaffType = (int)x.StaffType,
                 Qualification = x.Qualification,
@@ -193,6 +195,7 @@ namespace PatientBookingSystem.Application.Services
                 HouseNumber = staff.User?.HouseNumber,
                 PinCode = staff.User?.PinCode,
                 IsActive = staff.User?.IsActive ?? false,
+                Gender = staff.User?.Gender,
 
                 StaffType = (int)staff.StaffType,
                 Qualification = staff.Qualification,
@@ -240,6 +243,7 @@ namespace PatientBookingSystem.Application.Services
                 user.HouseNumber = dto.HouseNumber ?? string.Empty;
                 user.PinCode = dto.PinCode ?? string.Empty;
                 user.IsActive = dto.IsActive;
+                user.Gender = dto.Gender ?? string.Empty;
 
                 await _userRepo.UpdateAsync(user);
 
