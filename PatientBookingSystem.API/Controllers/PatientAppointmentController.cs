@@ -36,19 +36,19 @@ namespace PatientBookingSystem.API.Controllers
             }
         }
 
-        // ✅ GET ALL
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            try
-            {
-                return Ok(await _service.GetAllAsync());
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, ApiResponse<string>.FailResponse("Something went wrong"));
-            }
-        }
+        //// ✅ GET ALL
+        //[HttpGet]
+        //public async Task<IActionResult> GetAll()
+        //{
+        //    try
+        //    {
+        //        return Ok(await _service.GetAllAsync());
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return StatusCode(500, ApiResponse<string>.FailResponse("Something went wrong"));
+        //    }
+        //}
 
         // ✅ GET ALL Appoinment By UserId
         [HttpGet("user/{userId}")]
