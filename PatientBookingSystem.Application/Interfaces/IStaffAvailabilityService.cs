@@ -10,5 +10,8 @@ namespace PatientBookingSystem.Application.Interfaces
     {
         Task<ApiResponse<string>> CreateAsync(CreateStaffAvailabilityDto dto);
         Task<ApiResponse<List<StaffAvailabilityDto>>> GetByStaffId(int staffId);
+        Task<ApiResponse<string>> UpdateAsync(UpdateStaffAvailabilityDto dto);
+        Task<ApiResponse<string>> DeleteAsync(int id);
+        Task<ApiResponse<StaffAvailabilityDto>> GetByIdAsync(int id);
     }
 }

@@ -21,6 +21,7 @@ namespace PatientBookingSystem.Application.DTOs
         public string? DiseaseName { get; set; }
         public DateTime? DischargeDate { get; set; }
         public string? DoctorPrescription { get; set; }
+        public string? DoctorPrescriptionImageUrl { get; set; }
         public string? DiseaseImageUrl { get; set; }
 
         public string Status { get; set; } = null!;
@@ -30,5 +31,8 @@ namespace PatientBookingSystem.Application.DTOs
         public string HouseNumber { get; set; } = string.Empty;
         public string PinCode { get; set; } = string.Empty; 
         public string PhoneNumber { get; set; } = string.Empty;
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string? AppointmentAddress { get; set; }
     }
 }

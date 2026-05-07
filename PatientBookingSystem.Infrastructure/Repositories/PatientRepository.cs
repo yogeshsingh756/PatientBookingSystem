@@ -43,6 +43,8 @@ namespace PatientBookingSystem.Infrastructure.Repositories
             return _context.PatientAppointments
                 .Include(x => x.User)
                 .Include(x => x.Service)
+                .Include(x => x.Staff)
+                .ThenInclude(s => s.User)
                 .AsQueryable();
         }
     }

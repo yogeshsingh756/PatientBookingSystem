@@ -91,5 +91,19 @@ namespace PatientBookingSystem.API.Controllers
                 return StatusCode(500, ApiResponse<string>.FailResponse(ex.Message));
             }
         }
+
+        [HttpGet("available")]
+        public async Task<IActionResult> GetAvailableStaff(DateTime date, string slot)
+        {
+            try
+            {
+                var result = await _service.GetAvailableStaff(date, slot);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResponse<string>.FailResponse(ex.Message));
+            }
+        }
     }
 }

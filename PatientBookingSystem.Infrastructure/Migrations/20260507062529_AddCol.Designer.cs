@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PatientBookingSystem.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PatientBookingSystem.Infrastructure.Data;
 namespace PatientBookingSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507062529_AddCol")]
+    partial class AddCol
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,9 +98,6 @@ namespace PatientBookingSystem.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AppointmentAddress")
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("AppointmentDate")
                         .HasColumnType("datetime(6)");
 
@@ -118,12 +118,6 @@ namespace PatientBookingSystem.Infrastructure.Migrations
 
                     b.Property<string>("DoctorPrescriptionImageUrl")
                         .HasColumnType("longtext");
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("double");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("double");
 
                     b.Property<int?>("NoOfDays")
                         .HasColumnType("int");

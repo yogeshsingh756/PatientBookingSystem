@@ -18,6 +18,7 @@ namespace PatientBookingSystem.Application.DTOs
         public string PinCode { get; set; }
 
         public bool IsActive { get; set; }
+        public string? Gender { get; set; } = string.Empty;
 
         public int StaffType { get; set; }
         public string Qualification { get; set; }

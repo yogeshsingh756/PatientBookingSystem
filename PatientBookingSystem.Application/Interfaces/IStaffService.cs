@@ -14,5 +14,8 @@ namespace PatientBookingSystem.Application.Interfaces
 
         Task<ApiResponse<PaginatedResponse<StaffDto>>> GetAllAsync(StaffFilterDto filter);
         Task<ApiResponse<StaffDetailDto>> GetByIdAsync(int id);
+        Task<ApiResponse<List<AvailableStaffDto>>> GetAvailableStaff(
+    DateTime date,
+    string slot);
     }
 }

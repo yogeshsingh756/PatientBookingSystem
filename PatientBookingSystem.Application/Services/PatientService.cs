@@ -27,6 +27,7 @@ namespace PatientBookingSystem.Application.Services
             try
             {
                 var imagePath = await SaveImage(dto.DiseaseImage);
+                var prescriptionImagePath = await SaveImage(dto.DoctorPrescriptionImage);
 
                 var patient = new PatientAppointment
                 {
@@ -41,7 +42,11 @@ namespace PatientBookingSystem.Application.Services
                     DoctorPrescription = dto.DoctorPrescription,
                     DiseaseImageUrl = imagePath,
                     Status = PatientStatus.Pending,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    DoctorPrescriptionImageUrl = prescriptionImagePath,
+                    Latitude = dto.Latitude,
+                    Longitude = dto.Longitude,
+                    AppointmentAddress = dto.AppointmentAddress
                 };
 
                 await _repo.AddAsync(patient);
@@ -86,8 +91,12 @@ namespace PatientBookingSystem.Application.Services
                 DiseaseName = x.DiseaseName,
                 DischargeDate = x.DischargeDate,
                 DoctorPrescription = x.DoctorPrescription,
+                DoctorPrescriptionImageUrl = x.DoctorPrescriptionImageUrl != null ? baseUrl + x.DoctorPrescriptionImageUrl : null,
                 DiseaseImageUrl = x.DiseaseImageUrl != null ? baseUrl + x.DiseaseImageUrl : null,
-                Status = x.Status.ToString()
+                Status = x.Status.ToString(),
+                Latitude = x.Latitude,
+                Longitude = x.Longitude,
+                AppointmentAddress = x.AppointmentAddress
             }).ToList();
 
             return ApiResponse<List<PatientDto>>.SuccessResponse(result, "Patients fetched successfully");
@@ -129,10 +138,16 @@ namespace PatientBookingSystem.Application.Services
                     SlotTime = x.SlotTime,
                     DiseaseName = x.DiseaseName,
                     ServiceName = x.Service.Name ?? string.Empty,
+                    DoctorPrescriptionImageUrl = x.DoctorPrescriptionImageUrl != null
+                        ? baseUrl + x.DoctorPrescriptionImageUrl
+                        : null,
                     DiseaseImageUrl = x.DiseaseImageUrl != null
                         ? baseUrl + x.DiseaseImageUrl
                         : null,
                     Status = x.Status.ToString() ?? string.Empty,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude,
+                    AppointmentAddress = x.AppointmentAddress ?? string.Empty
                 })
                 .ToListAsync();
 
@@ -167,8 +182,12 @@ namespace PatientBookingSystem.Application.Services
                 DiseaseName = x.DiseaseName,
                 DischargeDate = x.DischargeDate,
                 DoctorPrescription = x.DoctorPrescription,
+                DoctorPrescriptionImageUrl = x.DoctorPrescriptionImageUrl != null ? baseUrl + x.DoctorPrescriptionImageUrl : null,
                 DiseaseImageUrl = x.DiseaseImageUrl != null ? baseUrl + x.DiseaseImageUrl : null,
-                Status = x.Status.ToString()
+                Status = x.Status.ToString(),
+                Latitude = x.Latitude,  
+                Longitude = x.Longitude,
+                AppointmentAddress = x.AppointmentAddress
             };
 
             return ApiResponse<PatientDto>.SuccessResponse(data, "Patient Appoinment fetched successfully");
@@ -184,8 +203,10 @@ namespace PatientBookingSystem.Application.Services
 
             if (dto.DiseaseImage != null)
                 patient.DiseaseImageUrl = await SaveImage(dto.DiseaseImage);
+            if (dto.DoctorPrescriptionImage != null)
+                patient.DoctorPrescriptionImageUrl = await SaveImage(dto.DoctorPrescriptionImage);
 
-            patient.UserId = dto.UserId;
+                patient.UserId = dto.UserId;
             patient.ServiceId = dto.ServiceId;
             patient.StaffId = dto.StaffId.GetValueOrDefault() == 0 ? null : dto.StaffId;
             patient.AppointmentDate = dto.AppointmentDate;
@@ -194,6 +215,9 @@ namespace PatientBookingSystem.Application.Services
             patient.DiseaseName = dto.DiseaseName;
             patient.DischargeDate = dto.DischargeDate;
             patient.DoctorPrescription = dto.DoctorPrescription;
+            patient.Latitude = dto.Latitude;
+            patient.Longitude = dto.Longitude;
+            patient.AppointmentAddress = dto.AppointmentAddress;
 
             await _repo.UpdateAsync(patient);
             await _repo.SaveChangesAsync();
@@ -299,7 +323,14 @@ namespace PatientBookingSystem.Application.Services
 
                     DiseaseName = x.DiseaseName,
                     Status = (int)x.Status,
-                    NoOfDays = x.NoOfDays
+                    NoOfDays = x.NoOfDays,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude,
+                    AppointmentAddress = x.AppointmentAddress,
+                    StaffId = x.StaffId ?? 0,
+                    StaffName = x.Staff != null && x.Staff.User != null
+    ? x.Staff.User.Name
+    : string.Empty
                 })
                 .ToListAsync();
 

@@ -5,9 +5,7 @@ using PatientBookingSystem.Application.DTOs.Common;
 using PatientBookingSystem.Application.Interfaces;
 using PatientBookingSystem.Domain.Entities;
 using PatientBookingSystem.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace PatientBookingSystem.Application.Services
 {
@@ -18,14 +16,18 @@ namespace PatientBookingSystem.Application.Services
         private readonly IUserRepository _userRepo;
         private readonly IHttpContextAccessor _http;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IStaffAvailabilityRepository _availabilityRepo;
+        private readonly IPatientRepository _appointmentRepo;
 
-        public StaffService(IStaffRepository repo, IStaffDocumentRepository docRepo, IUserRepository userRepo, IHttpContextAccessor http, IUnitOfWork unitOfWork)
+        public StaffService(IStaffRepository repo, IStaffDocumentRepository docRepo, IUserRepository userRepo, IHttpContextAccessor http, IUnitOfWork unitOfWork, IStaffAvailabilityRepository availabilityRepo,IPatientRepository patientRepository)
         {
             _repo = repo;
             _docRepo = docRepo;
             _userRepo = userRepo;
             _http = http;
             _unitOfWork = unitOfWork;
+            _availabilityRepo = availabilityRepo;
+            _appointmentRepo = patientRepository;
         }
 
         // ✅ CREATE
@@ -54,7 +56,8 @@ namespace PatientBookingSystem.Application.Services
                     Role = "Staff",
                     IsVerified = true,
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    Gender = dto.Gender ?? string.Empty,
                 };
 
                 await _userRepo.AddAsync(user);
@@ -142,6 +145,7 @@ namespace PatientBookingSystem.Application.Services
                 Landmark = x.User.Landmark,
                 PinCode = x.User.PinCode,
                 IsActive = x.User.IsActive,
+                Gender = x.User.Gender,
 
                 StaffType = (int)x.StaffType,
                 Qualification = x.Qualification,
@@ -193,6 +197,7 @@ namespace PatientBookingSystem.Application.Services
                 HouseNumber = staff.User?.HouseNumber,
                 PinCode = staff.User?.PinCode,
                 IsActive = staff.User?.IsActive ?? false,
+                Gender = staff.User?.Gender,
 
                 StaffType = (int)staff.StaffType,
                 Qualification = staff.Qualification,
@@ -240,6 +245,7 @@ namespace PatientBookingSystem.Application.Services
                 user.HouseNumber = dto.HouseNumber ?? string.Empty;
                 user.PinCode = dto.PinCode ?? string.Empty;
                 user.IsActive = dto.IsActive;
+                user.Gender = dto.Gender ?? string.Empty;
 
                 await _userRepo.UpdateAsync(user);
 
@@ -319,6 +325,61 @@ namespace PatientBookingSystem.Application.Services
                 await _unitOfWork.RollbackAsync();
                 return ApiResponse<string>.FailResponse(ex.Message);
             }
+        }
+
+        public async Task<ApiResponse<List<AvailableStaffDto>>> GetAvailableStaff(
+    DateTime date,
+    string slot)
+        {
+            var day = date.DayOfWeek;
+
+            var timeParts = slot.Split('-');
+            var start = TimeSpan.Parse(timeParts[0]);
+            var end = TimeSpan.Parse(timeParts[1]);
+
+            // 1️⃣ Get staff with availability
+            var availableStaff = await _availabilityRepo.GetQueryable()
+                .Where(a =>
+                    a.Day == day &&
+                    a.IsActive &&
+                    a.StartTime <= start &&
+                    a.EndTime >= end
+                )
+                .Select(a => a.StaffId)
+                .Distinct()
+                .ToListAsync();
+
+            // 2️⃣ Remove already booked staff
+            var bookedStaff = await _appointmentRepo.GetQueryable()
+                .Where(x =>
+                    x.AppointmentDate.Date == date.Date &&
+                    x.SlotTime == slot &&
+                    x.Status == PatientStatus.Approved
+                )
+                .Select(x => x.StaffId)
+                .ToListAsync();
+
+            var bookedSet = bookedStaff.ToHashSet();
+
+            var finalStaffIds = availableStaff
+                .Where(id => !bookedSet.Contains(id))
+                .ToList();
+
+            // 3️⃣ Get staff details
+            var staffList = await _repo.GetQueryable()
+                .Include(s => s.User)
+                .Where(s => finalStaffIds.Contains(s.Id) && s.IsAvailable)
+                .ToListAsync();
+
+            // 4️⃣ Map
+            var result = staffList.Select(s => new AvailableStaffDto
+            {
+                StaffId = s.Id,
+                Name = s.User.Name,
+                Specialization = s.Specialization
+            }).ToList();
+
+            return ApiResponse<List<AvailableStaffDto>>.SuccessResponse(result, "Available staff fetched");
         }
 
         // 🔥 FILE SAVE

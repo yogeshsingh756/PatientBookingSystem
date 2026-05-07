@@ -17,6 +17,7 @@ namespace PatientBookingSystem.Application.DTOs
         public string? Landmark { get; set; } = string.Empty;
         public string? HouseNumber { get; set; } = string.Empty;
         public string? PinCode { get; set; } = string.Empty;
+        public string? Gender { get; set; } = string.Empty;
 
         // 🔹 STAFF FIELDS
         public int StaffType { get; set; }
