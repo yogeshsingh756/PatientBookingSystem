@@ -326,7 +326,11 @@ namespace PatientBookingSystem.Application.Services
                     NoOfDays = x.NoOfDays,
                     Latitude = x.Latitude,
                     Longitude = x.Longitude,
-                    AppointmentAddress = x.AppointmentAddress
+                    AppointmentAddress = x.AppointmentAddress,
+                    StaffId = x.StaffId ?? 0,
+                    StaffName = x.Staff != null && x.Staff.User != null
+    ? x.Staff.User.Name
+    : string.Empty
                 })
                 .ToListAsync();
 

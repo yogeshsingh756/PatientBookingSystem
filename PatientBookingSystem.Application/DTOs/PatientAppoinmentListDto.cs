@@ -28,5 +28,7 @@ namespace PatientBookingSystem.Application.DTOs
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public string? AppointmentAddress { get; set; }
+        public int? StaffId { get; set; } 
+        public string? StaffName { get; set; } = string.Empty;
     }
 }
