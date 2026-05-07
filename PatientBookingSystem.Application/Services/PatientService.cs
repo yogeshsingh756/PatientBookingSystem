@@ -43,7 +43,9 @@ namespace PatientBookingSystem.Application.Services
                     DiseaseImageUrl = imagePath,
                     Status = PatientStatus.Pending,
                     CreatedAt = DateTime.UtcNow,
-                    DoctorPrescriptionImageUrl = prescriptionImagePath
+                    DoctorPrescriptionImageUrl = prescriptionImagePath,
+                    Latitude = dto.Latitude,
+                    Longitude = dto.Longitude
                 };
 
                 await _repo.AddAsync(patient);
@@ -90,7 +92,9 @@ namespace PatientBookingSystem.Application.Services
                 DoctorPrescription = x.DoctorPrescription,
                 DoctorPrescriptionImageUrl = x.DoctorPrescriptionImageUrl != null ? baseUrl + x.DoctorPrescriptionImageUrl : null,
                 DiseaseImageUrl = x.DiseaseImageUrl != null ? baseUrl + x.DiseaseImageUrl : null,
-                Status = x.Status.ToString()
+                Status = x.Status.ToString(),
+                Latitude = x.Latitude,
+                Longitude = x.Longitude
             }).ToList();
 
             return ApiResponse<List<PatientDto>>.SuccessResponse(result, "Patients fetched successfully");
@@ -139,6 +143,8 @@ namespace PatientBookingSystem.Application.Services
                         ? baseUrl + x.DiseaseImageUrl
                         : null,
                     Status = x.Status.ToString() ?? string.Empty,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude
                 })
                 .ToListAsync();
 
@@ -175,7 +181,9 @@ namespace PatientBookingSystem.Application.Services
                 DoctorPrescription = x.DoctorPrescription,
                 DoctorPrescriptionImageUrl = x.DoctorPrescriptionImageUrl != null ? baseUrl + x.DoctorPrescriptionImageUrl : null,
                 DiseaseImageUrl = x.DiseaseImageUrl != null ? baseUrl + x.DiseaseImageUrl : null,
-                Status = x.Status.ToString()
+                Status = x.Status.ToString(),
+                Latitude = x.Latitude,  
+                Longitude = x.Longitude
             };
 
             return ApiResponse<PatientDto>.SuccessResponse(data, "Patient Appoinment fetched successfully");
@@ -203,6 +211,8 @@ namespace PatientBookingSystem.Application.Services
             patient.DiseaseName = dto.DiseaseName;
             patient.DischargeDate = dto.DischargeDate;
             patient.DoctorPrescription = dto.DoctorPrescription;
+            patient.Latitude = dto.Latitude;
+            patient.Longitude = dto.Longitude;
 
             await _repo.UpdateAsync(patient);
             await _repo.SaveChangesAsync();
@@ -308,7 +318,9 @@ namespace PatientBookingSystem.Application.Services
 
                     DiseaseName = x.DiseaseName,
                     Status = (int)x.Status,
-                    NoOfDays = x.NoOfDays
+                    NoOfDays = x.NoOfDays,
+                    Latitude = x.Latitude,
+                    Longitude = x.Longitude
                 })
                 .ToListAsync();
 

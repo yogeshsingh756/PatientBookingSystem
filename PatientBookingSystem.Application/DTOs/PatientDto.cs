@@ -22,5 +22,7 @@ namespace PatientBookingSystem.Application.DTOs
         public string? DiseaseImageUrl { get; set; }
 
         public string Status { get; set; } = null!;
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }

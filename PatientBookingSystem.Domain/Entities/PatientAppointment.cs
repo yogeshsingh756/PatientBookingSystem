@@ -24,6 +24,8 @@ namespace PatientBookingSystem.Domain.Entities
         public PatientStatus Status { get; set; } = PatientStatus.Pending;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public User User { get; set; }       
         public Service? Service { get; set; }
         public Staff? Staff { get; set; }

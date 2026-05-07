@@ -21,5 +21,7 @@ namespace PatientBookingSystem.Application.DTOs
         public IFormFile? DoctorPrescriptionImage { get; set; }
         public string? DoctorPrescription { get; set; }
         public IFormFile? DiseaseImage { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }

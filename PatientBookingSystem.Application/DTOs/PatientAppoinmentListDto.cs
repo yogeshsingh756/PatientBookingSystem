@@ -25,5 +25,7 @@ namespace PatientBookingSystem.Application.DTOs
 
         public int Status { get; set; }
         public int? NoOfDays { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }
