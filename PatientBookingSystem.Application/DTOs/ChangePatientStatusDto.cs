@@ -8,6 +8,7 @@ namespace PatientBookingSystem.Application.DTOs
     public class ChangePatientStatusDto
     {
         public int Id { get; set; }
+        public int? StaffId { get; set; }
         public PatientStatus Status { get; set; }
         public string? Remarks { get; set; }
     }

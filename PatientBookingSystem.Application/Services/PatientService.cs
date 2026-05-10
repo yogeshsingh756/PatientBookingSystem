@@ -13,12 +13,14 @@ namespace PatientBookingSystem.Application.Services
         private readonly IPatientRepository _repo;
         private readonly IHttpContextAccessor _httpContext;
         private readonly IPatientStatusHistoryRepository _historyRepo;
+        private readonly IStaffRepository _staffRepo;
 
-        public PatientService(IPatientRepository repo, IHttpContextAccessor httpContext, IPatientStatusHistoryRepository historyRepo)
+        public PatientService(IPatientRepository repo, IHttpContextAccessor httpContext, IPatientStatusHistoryRepository historyRepo, IStaffRepository staffRepo)
         {
             _repo = repo;
             _httpContext = httpContext;
             _historyRepo = historyRepo;
+            _staffRepo = staffRepo;
         }
 
         // ✅ CREATE
@@ -258,6 +260,38 @@ namespace PatientBookingSystem.Application.Services
             // 🔁 Prevent same status update
             if (patient.Status == dto.Status)
                 return ApiResponse<string>.FailResponse("Status is already the same");
+            // 🔥 APPROVAL LOGIC
+            if (dto.Status == PatientStatus.Approved)
+            {
+                // ✅ Staff required during approval
+                var finalStaffId = dto.StaffId ?? patient.StaffId;
+
+                if (finalStaffId == null)
+                    return ApiResponse<string>.FailResponse("Staff is required for approval");
+
+                // ✅ Check staff exists
+                var staffExists = await _staffRepo.GetQueryable()
+                    .AnyAsync(x => x.Id == finalStaffId && x.IsAvailable);
+
+                if (!staffExists)
+                    return ApiResponse<string>.FailResponse("Selected staff not found");
+
+                // ✅ Recheck availability
+                var alreadyBooked = await _repo.GetQueryable()
+                    .AnyAsync(x =>
+                        x.Id != patient.Id &&
+                        x.StaffId == finalStaffId &&
+                        x.AppointmentDate.Date == patient.AppointmentDate.Date &&
+                        x.SlotTime == patient.SlotTime &&
+                        x.Status == PatientStatus.Approved
+                    );
+
+                if (alreadyBooked)
+                    return ApiResponse<string>.FailResponse("Staff is no longer available");
+
+                // ✅ Assign staff
+                patient.StaffId = finalStaffId;
+            }
 
             // ✅ Update status
             patient.Status = dto.Status;
