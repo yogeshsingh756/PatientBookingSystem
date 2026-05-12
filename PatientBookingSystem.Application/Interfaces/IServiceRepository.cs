@@ -12,5 +12,6 @@ namespace PatientBookingSystem.Application.Interfaces
         Task<List<Service>> GetAllAsync();
         Task UpdateAsync(Service service);
         Task SaveChangesAsync();
+        IQueryable<Service> GetQueryable();
     }
 }

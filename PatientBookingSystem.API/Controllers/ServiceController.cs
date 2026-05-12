@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PatientBookingSystem.Application.DTOs;
 using PatientBookingSystem.Application.DTOs.Common;
 using PatientBookingSystem.Application.Interfaces;
@@ -7,6 +8,7 @@ namespace PatientBookingSystem.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ServiceController : ControllerBase
     {
         private readonly IServiceService _service;

@@ -2,29 +2,28 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PatientBookingSystem.Application.DTOs.Common;
-using PatientBookingSystem.Application.DTOs.Dashboard;
 using PatientBookingSystem.Application.Interfaces;
 
 namespace PatientBookingSystem.API.Controllers
 {
+    [Route("api/patient-dashboard")]
     [ApiController]
-    [Route("api/admin/dashboard")]
     [Authorize]
-    public class AdminDashboardController : ControllerBase
+    public class PatientDashboardController : ControllerBase
     {
-        private readonly IAdminDashboardService _service;
+        private readonly IPatientDashboardService _service;
 
-        public AdminDashboardController(IAdminDashboardService service)
+        public PatientDashboardController(IPatientDashboardService service)
         {
             _service = service;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetDashboard([FromQuery] DashboardFilterDto dto)
+        public async Task<IActionResult> GetDashboard()
         {
             try
             {
-                var result = await _service.GetDashboardAsync(dto);
+                var result = await _service.GetDashboardAsync();
 
                 if (!result.IsSuccess)
                     return BadRequest(result);

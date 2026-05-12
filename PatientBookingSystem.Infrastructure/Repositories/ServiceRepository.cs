@@ -38,5 +38,9 @@ namespace PatientBookingSystem.Infrastructure.Repositories
         {
             await _context.SaveChangesAsync();
         }
+        public IQueryable<Service> GetQueryable()
+        {
+            return _context.Services.AsQueryable();
+        }
     }
 }
