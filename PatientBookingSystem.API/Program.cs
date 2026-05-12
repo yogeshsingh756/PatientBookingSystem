@@ -2,8 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using PatientBookingSystem.Application.DTOs.Common;
 using PatientBookingSystem.Application.Extensions;
-using PatientBookingSystem.Infrastructure.Configurations;
-using PatientBookingSystem.Infrastructure.Data;
 using PatientBookingSystem.Infrastructure.Extensions;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
