@@ -1,49 +1,58 @@
-﻿using MailKit.Net.Smtp;
-using MailKit.Security;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-using MimeKit;
+﻿using Microsoft.Extensions.Options;
 using PatientBookingSystem.Application.Interfaces;
 using PatientBookingSystem.Infrastructure.Configurations;
-using SendGrid;
-using SendGrid.Helpers.Mail;
-using System;
-using System.Collections.Generic;
+using System.Net;
 using System.Net.Mail;
-using System.Text;
+
 
 namespace PatientBookingSystem.Infrastructure.Services
 {
     public class NotificationService : INotificationService
     {
-        private readonly EmailSettings _emailSettings;
-        private readonly string _apiKey;
-        private readonly string _senderEmail;
+        private readonly EmailSettings _awsSettings;
 
-        public NotificationService(IOptions<EmailSettings> emailSettings, IConfiguration config)
+        public NotificationService(IOptions<EmailSettings> awsSettings)
         {
-            _emailSettings = emailSettings.Value;
-            _apiKey = config["SENDGRID_API_KEY"];
-            //_apiKey = config["SendGridSettings:ApiKey"];
-            _senderEmail = config["SendGridSettings:SenderEmail"];
+            _awsSettings = awsSettings.Value;
         }
-        public async Task SendEmailAsync(string email, string subject, string message)
+
+        public async Task SendEmailAsync(
+            string email,
+            string subject,
+            string message)
         {
-            var client = new SendGridClient(_apiKey);
-
-            var from = new EmailAddress(_senderEmail, "Patient Booking App");
-            var to = new EmailAddress(email);
-
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, message, message);
-
-            var response = await client.SendEmailAsync(msg);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                var error = await response.Body.ReadAsStringAsync();
-                Console.WriteLine("SendGrid Error: " + error);
+                using (var client = new SmtpClient(_awsSettings.Host, _awsSettings.Port))
+                {
+                    client.Credentials = new NetworkCredential(
+                        _awsSettings.Username,
+                        _awsSettings.Password
+                    );
+
+                    client.EnableSsl = true;
+
+                    var mailMessage = new MailMessage
+                    {
+                        From = new MailAddress(_awsSettings.SenderEmail),
+                        Subject = subject,
+                        Body = message,
+                        IsBodyHtml = true
+                    };
+
+                    mailMessage.To.Add(email);
+
+                    await client.SendMailAsync(mailMessage);
+
+                    Console.WriteLine("Email Sent Successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SMTP Email Error: {ex.Message}");
             }
         }
+
 
         //public async Task SendEmailAsync(string email, string subject, string message)
         //{
@@ -71,5 +80,6 @@ namespace PatientBookingSystem.Infrastructure.Services
             Console.WriteLine($"SMS to {phone}: {message}");
             //return Task.CompletedTask;
         }
+
     }
 }
