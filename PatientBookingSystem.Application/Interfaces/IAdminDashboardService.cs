@@ -8,6 +8,6 @@ namespace PatientBookingSystem.Application.Interfaces
 {
     public interface IAdminDashboardService
     {
-        Task<ApiResponse<AdminDashboardDto>> GetDashboardAsync();
+        Task<ApiResponse<AdminDashboardDto>> GetDashboardAsync(DashboardFilterDto dto);
     }
 }

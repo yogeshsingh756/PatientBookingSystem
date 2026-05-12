@@ -1,8 +1,9 @@
-﻿using PatientBookingSystem.Application.DTOs.Common;
+﻿using Microsoft.EntityFrameworkCore;
+using PatientBookingSystem.Application.DTOs.Common;
 using PatientBookingSystem.Application.DTOs.Dashboard;
 using PatientBookingSystem.Application.Interfaces;
 using PatientBookingSystem.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace PatientBookingSystem.Application.Services
 {
@@ -28,9 +29,36 @@ namespace PatientBookingSystem.Application.Services
             _availabilityRepo = availabilityRepo;
         }
 
-        public async Task<ApiResponse<AdminDashboardDto>> GetDashboardAsync()
+        public async Task<ApiResponse<AdminDashboardDto>> GetDashboardAsync(DashboardFilterDto dto)
         {
             var today = DateTime.UtcNow.Date;
+
+            DateTime startDate;
+            DateTime endDate = today;
+
+            switch (dto.Filter)
+            {
+                case DashboardFilterType.Today:
+                    startDate = today;
+                    break;
+
+                case DashboardFilterType.Week:
+                    startDate = today.AddDays(-6);
+                    break;
+
+                case DashboardFilterType.Month:
+                    startDate = today.AddDays(-29);
+                    break;
+
+                case DashboardFilterType.Year:
+                    startDate = new DateTime(today.Year, 1, 1);
+                    endDate = new DateTime(today.Year, 12, 31);
+                    break;
+
+                default:
+                    startDate = today;
+                    break;
+            }
 
             // ================= OVERVIEW =================
 
@@ -41,7 +69,12 @@ namespace PatientBookingSystem.Application.Services
                 .CountAsync(x => x.IsAvailable);
 
             var totalAppointments = await _appointmentRepo.GetQueryable()
-                .CountAsync();
+     .CountAsync();
+
+            var appointmentsInRange = await _appointmentRepo.GetQueryable()
+                .CountAsync(x =>
+                    x.AppointmentDate.Date >= startDate &&
+                    x.AppointmentDate.Date <= endDate);
 
             var todayAppointments = await _appointmentRepo.GetQueryable()
                 .CountAsync(x => x.AppointmentDate.Date == today);
@@ -68,30 +101,48 @@ namespace PatientBookingSystem.Application.Services
 
 
             var pendingAppointments = await _appointmentRepo.GetQueryable()
-                .CountAsync(x => x.Status == PatientStatus.Pending);
+    .CountAsync(x =>
+        x.AppointmentDate.Date >= startDate &&
+        x.AppointmentDate.Date <= endDate &&
+        x.Status == PatientStatus.Pending);
 
             var approvedAppointments = await _appointmentRepo.GetQueryable()
-                .CountAsync(x => x.Status == PatientStatus.Approved);
+     .CountAsync(x =>
+         x.AppointmentDate.Date >= startDate &&
+         x.AppointmentDate.Date <= endDate &&
+         x.Status == PatientStatus.Approved);
 
             var completedAppointments = await _appointmentRepo.GetQueryable()
-                .CountAsync(x => x.Status == PatientStatus.Completed);
+    .CountAsync(x =>
+        x.AppointmentDate.Date >= startDate &&
+        x.AppointmentDate.Date <= endDate &&
+        x.Status == PatientStatus.Completed);
 
             var cancelledAppointments = await _appointmentRepo.GetQueryable()
-                .CountAsync(x => x.Status == PatientStatus.Cancelled);
+    .CountAsync(x =>
+        x.AppointmentDate.Date >= startDate &&
+        x.AppointmentDate.Date <= endDate &&
+        x.Status == PatientStatus.Cancelled);
 
             // ================= CONVERSION RATE =================
 
             double conversionRate = 0;
 
-            if (totalAppointments > 0)
+            if (appointmentsInRange > 0)
             {
                 conversionRate =
-                    Math.Round(((double)approvedAppointments / totalAppointments) * 100, 2);
+                    Math.Round(
+                        ((double)approvedAppointments / appointmentsInRange) * 100,
+                        2
+                    );
             }
 
             // ================= MOST BOOKED DAY =================
 
             var mostBookedDay = await _appointmentRepo.GetQueryable()
+    .Where(x =>
+        x.AppointmentDate.Date >= startDate &&
+        x.AppointmentDate.Date <= endDate)
                 .GroupBy(x => x.AppointmentDate.DayOfWeek)
                 .Select(g => new
                 {
@@ -104,6 +155,9 @@ namespace PatientBookingSystem.Application.Services
             // ================= MOST BOOKED SLOT =================
 
             var mostBookedSlot = await _appointmentRepo.GetQueryable()
+    .Where(x =>
+        x.AppointmentDate.Date >= startDate &&
+        x.AppointmentDate.Date <= endDate)
                 .GroupBy(x => x.SlotTime)
                 .Select(g => new
                 {
@@ -113,31 +167,63 @@ namespace PatientBookingSystem.Application.Services
                 .OrderByDescending(x => x.Count)
                 .FirstOrDefaultAsync();
 
-            // ================= LAST 7 DAYS TREND =================
+            // ================= LAST DAYS TREND =================
 
-            var last7Days = today.AddDays(-6);
 
-            var trendData = await _appointmentRepo.GetQueryable()
-        .Where(x => x.AppointmentDate.Date >= last7Days)
-        .GroupBy(x => x.AppointmentDate.Date)
-        .Select(g => new
-        {
-            Day = g.Key,
-            Count = g.Count()
-        })
-        .OrderBy(x => x.Day)
-        .ToListAsync();
+            List<AppointmentTrendDto> trend;
 
-            var trend = trendData.Select(x => new AppointmentTrendDto
+            if (dto.Filter == DashboardFilterType.Year)
             {
-                Day = x.Day.ToString("dd MMM"),
-                Count = x.Count
-            }).ToList();
+                var trendData = await _appointmentRepo.GetQueryable()
+                    .Where(x =>
+                        x.AppointmentDate.Date >= startDate &&
+                        x.AppointmentDate.Date <= endDate)
+                    .GroupBy(x => x.AppointmentDate.Month)
+                    .Select(g => new
+                    {
+                        Month = g.Key,
+                        Count = g.Count()
+                    })
+                    .OrderBy(x => x.Month)
+                    .ToListAsync();
+
+                trend = trendData.Select(x => new AppointmentTrendDto
+                {
+                    Day = CultureInfo.CurrentCulture.DateTimeFormat
+                        .GetAbbreviatedMonthName(x.Month),
+
+                    Count = x.Count
+                }).ToList();
+            }
+            else
+            {
+                var trendData = await _appointmentRepo.GetQueryable()
+                    .Where(x =>
+                        x.AppointmentDate.Date >= startDate &&
+                        x.AppointmentDate.Date <= endDate)
+                    .GroupBy(x => x.AppointmentDate.Date)
+                    .Select(g => new
+                    {
+                        Day = g.Key,
+                        Count = g.Count()
+                    })
+                    .OrderBy(x => x.Day)
+                    .ToListAsync();
+
+                trend = trendData.Select(x => new AppointmentTrendDto
+                {
+                    Day = x.Day.ToString("dd MMM"),
+                    Count = x.Count
+                }).ToList();
+            }
 
             // ================= MOST BOOKED STAFF =================
 
             var mostBookedStaff = await _appointmentRepo.GetQueryable()
-                .Where(x => x.StaffId != null)
+                .Where(x =>
+    x.AppointmentDate.Date >= startDate &&
+    x.AppointmentDate.Date <= endDate &&
+    x.StaffId != null)
                 .GroupBy(x => x.Staff.User.Name)
                 .Select(g => new
                 {
@@ -150,7 +236,10 @@ namespace PatientBookingSystem.Application.Services
             // ================= LEAST ACTIVE STAFF =================
 
             var leastActiveStaff = await _appointmentRepo.GetQueryable()
-                .Where(x => x.StaffId != null)
+                 .Where(x =>
+        x.AppointmentDate.Date >= startDate &&
+        x.AppointmentDate.Date <= endDate &&
+        x.StaffId != null)
                 .GroupBy(x => x.Staff.User.Name)
                 .Select(g => new
                 {
@@ -180,7 +269,9 @@ namespace PatientBookingSystem.Application.Services
 
             // ================= MOST BOOKED SERVICE =================
 
-            var mostBookedService = await _appointmentRepo.GetQueryable()
+            var mostBookedService = await _appointmentRepo.GetQueryable().Where(x =>
+    x.AppointmentDate.Date >= startDate &&
+    x.AppointmentDate.Date <= endDate)
                 .GroupBy(x => x.Service.Name)
                 .Select(g => new
                 {
@@ -192,7 +283,9 @@ namespace PatientBookingSystem.Application.Services
 
             // ================= LEAST BOOKED SERVICE =================
 
-            var leastBookedService = await _appointmentRepo.GetQueryable()
+            var leastBookedService = await _appointmentRepo.GetQueryable().Where(x =>
+        x.AppointmentDate.Date >= startDate &&
+        x.AppointmentDate.Date <= endDate)
                 .GroupBy(x => x.Service.Name)
                 .Select(g => new
                 {
@@ -204,7 +297,9 @@ namespace PatientBookingSystem.Application.Services
 
             // ================= SERVICE WISE BOOKINGS =================
 
-            var serviceWiseBookings = await _appointmentRepo.GetQueryable()
+            var serviceWiseBookings = await _appointmentRepo.GetQueryable().Where(x =>
+        x.AppointmentDate.Date >= startDate &&
+        x.AppointmentDate.Date <= endDate)
                 .GroupBy(x => x.Service.Name)
                 .Select(g => new ServiceBookingDto
                 {
@@ -216,7 +311,9 @@ namespace PatientBookingSystem.Application.Services
 
             // ================= RECENT APPOINTMENTS =================
 
-            var recentAppointments = await _appointmentRepo.GetQueryable()
+            var recentAppointments = await _appointmentRepo.GetQueryable().Where(x =>
+        x.AppointmentDate.Date >= startDate &&
+        x.AppointmentDate.Date <= endDate)
                 .OrderByDescending(x => x.Id)
                 .Take(10)
                 .Select(x => new RecentAppointmentDto
@@ -231,6 +328,16 @@ namespace PatientBookingSystem.Application.Services
                 })
                 .ToListAsync();
 
+
+            string trendTitle = dto.Filter switch
+            {
+                DashboardFilterType.Today => "Today's Trend",
+                DashboardFilterType.Week => "Last 7 Days Trend",
+                DashboardFilterType.Month => "Last 30 Days Trend",
+                DashboardFilterType.Year => "Yearly Trend",
+                _ => "Trend"
+            };
+
             // ================= FINAL RESPONSE =================
 
             var result = new AdminDashboardDto
@@ -240,6 +347,7 @@ namespace PatientBookingSystem.Application.Services
                     TotalPatients = totalPatients,
                     TotalStaff = totalStaff,
                     TotalAppointments = totalAppointments,
+                    AppointmentsInRange = appointmentsInRange,
                     TodayAppointments = todayAppointments,
                     TodayApprovedAppointments = todayApprovedAppointments,
                     TodayPendingAppointments = todayPendingAppointments,
@@ -258,7 +366,8 @@ namespace PatientBookingSystem.Application.Services
                     ConversionRate = conversionRate,
                     MostBookedDay = mostBookedDay?.Day,
                     MostBookedSlot = mostBookedSlot?.Slot,
-                    Last7DaysTrend = trend
+                    LastDaysTrend = trend,
+                    TrendTitle = trendTitle
                 },
 
                 StaffAnalytics = new StaffAnalyticsDto

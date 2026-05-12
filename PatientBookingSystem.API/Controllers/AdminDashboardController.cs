@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PatientBookingSystem.Application.DTOs.Common;
+using PatientBookingSystem.Application.DTOs.Dashboard;
 using PatientBookingSystem.Application.Interfaces;
 
 namespace PatientBookingSystem.API.Controllers
@@ -17,11 +18,11 @@ namespace PatientBookingSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetDashboard()
+        public async Task<IActionResult> GetDashboard([FromQuery] DashboardFilterDto dto)
         {
             try
             {
-                var result = await _service.GetDashboardAsync();
+                var result = await _service.GetDashboardAsync(dto);
 
                 if (!result.IsSuccess)
                     return BadRequest(result);

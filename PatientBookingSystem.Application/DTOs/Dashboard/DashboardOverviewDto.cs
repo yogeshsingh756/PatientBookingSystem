@@ -11,6 +11,7 @@ namespace PatientBookingSystem.Application.DTOs.Dashboard
         public int TotalStaff { get; set; }
 
         public int TotalAppointments { get; set; }
+        public int AppointmentsInRange { get; set; }
 
         public int TodayAppointments { get; set; }
 

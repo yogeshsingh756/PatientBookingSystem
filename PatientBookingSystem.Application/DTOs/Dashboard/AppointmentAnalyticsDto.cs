@@ -7,11 +7,11 @@ namespace PatientBookingSystem.Application.DTOs.Dashboard
     public class AppointmentAnalyticsDto
     {
         public double ConversionRate { get; set; }
-
+        public string TrendTitle { get; set; }
         public string? MostBookedDay { get; set; }
 
         public string? MostBookedSlot { get; set; }
 
-        public List<AppointmentTrendDto> Last7DaysTrend { get; set; }
+        public List<AppointmentTrendDto> LastDaysTrend { get; set; }
     }
 }
