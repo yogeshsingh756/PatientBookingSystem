@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -19,5 +20,6 @@ namespace PatientBookingSystem.Application.DTOs
 
         public string Role { get; set; }
         public string? Gender {get;set;}
+        public IFormFile? UserProfileImageUrl { get; set; }
     }
 }

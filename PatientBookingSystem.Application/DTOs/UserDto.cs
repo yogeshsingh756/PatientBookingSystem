@@ -24,5 +24,6 @@ namespace PatientBookingSystem.Application.DTOs
 
         public DateTime CreatedAt { get; set; }
         public string? Gender { get; set; }
+        public string? UserProfileImageUrl { get; set; }
     }
 }
