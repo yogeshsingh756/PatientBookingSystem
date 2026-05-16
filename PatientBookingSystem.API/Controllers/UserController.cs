@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PatientBookingSystem.Application.DTOs;
 using PatientBookingSystem.Application.DTOs.Common;
@@ -9,6 +10,7 @@ namespace PatientBookingSystem.API.Controllers
 {
     [ApiController]
     [Route("api/users")]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _service;

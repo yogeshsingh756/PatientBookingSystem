@@ -1,10 +1,9 @@
-﻿using PatientBookingSystem.Application.DTOs;
+﻿using Microsoft.AspNetCore.Http;
+using PatientBookingSystem.Application.DTOs;
 using PatientBookingSystem.Application.DTOs.Common;
 using PatientBookingSystem.Application.Interfaces;
 using PatientBookingSystem.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace PatientBookingSystem.Application.Services
 {
@@ -12,11 +11,12 @@ namespace PatientBookingSystem.Application.Services
     {
         private readonly IUserRepository _repo;
         private readonly INotificationService _notification;
-
-        public UserService(IUserRepository repo, INotificationService notification)
+        private readonly IHttpContextAccessor _http;
+        public UserService(IUserRepository repo, INotificationService notification, IHttpContextAccessor http)
         {
             _repo = repo;
             _notification = notification;
+            _http = http;
         }
 
         // ✅ GET ALL WITH PAGINATION + SEARCH
@@ -33,6 +33,7 @@ namespace PatientBookingSystem.Application.Services
                     x.Email.Contains(dto.Search) ||
                     x.PhoneNumber.Contains(dto.Search));
             }
+            var baseUrl = $"{_http.HttpContext.Request.Scheme}://{_http.HttpContext.Request.Host}";
 
             // 📊 TOTAL COUNT
             var totalRecords = query.Count();
@@ -56,7 +57,10 @@ namespace PatientBookingSystem.Application.Services
                     IsVerified = x.IsVerified,
                     IsActive = x.IsActive,
                     CreatedAt = x.CreatedAt,
-                    Gender = x.Gender
+                    Gender = x.Gender,
+                    UserProfileImageUrl = x.UserProfileImageUrl != null
+                    ? baseUrl + x.UserProfileImageUrl
+                    : null
                 })
                 .ToList();
 
@@ -79,6 +83,8 @@ namespace PatientBookingSystem.Application.Services
             if (user == null || user.Role.ToLower() != "patient")
                 return ApiResponse<UserDto>.FailResponse("User not found");
 
+            var baseUrl = $"{_http.HttpContext.Request.Scheme}://{_http.HttpContext.Request.Host}";
+
             var result = new UserDto
             {
                 Id = user.Id,
@@ -93,7 +99,10 @@ namespace PatientBookingSystem.Application.Services
                 IsVerified = user.IsVerified,
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
-                Gender = user.Gender
+                Gender = user.Gender,
+                UserProfileImageUrl = user.UserProfileImageUrl != null
+                    ? baseUrl + user.UserProfileImageUrl
+                    : null
             };
 
             return ApiResponse<UserDto>.SuccessResponse(result);
@@ -117,6 +126,9 @@ namespace PatientBookingSystem.Application.Services
             user.IsActive = dto.IsActive;
             user.Email = dto.Email;
             user.Gender = dto.Gender;
+
+            if (dto.UserProfileImageUrl != null)
+                user.UserProfileImageUrl = await SaveFile(dto.UserProfileImageUrl, "User");
 
             await _repo.UpdateAsync(user);
             await _repo.SaveChangesAsync();
@@ -147,6 +159,7 @@ namespace PatientBookingSystem.Application.Services
             if (exists)
                 return ApiResponse<string>.FailResponse("User already exists with this email or phone");
 
+            var rawPassword = dto.Password;
 
             var user = new User
             {
@@ -162,33 +175,102 @@ namespace PatientBookingSystem.Application.Services
                 CreatedAt = DateTime.UtcNow,
                 PinCode = dto.PinCode,
                 IsActive = true,
-                Gender = dto.Gender
+                Gender = dto.Gender,
+                UserProfileImageUrl = dto.UserProfileImageUrl != null && dto.UserProfileImageUrl.Length > 0
+        ? await SaveFile(dto.UserProfileImageUrl, "User")
+        : null
             };
             // Send credentials
             await _repo.AddAsync(user);
             await _repo.SaveChangesAsync();
-            //await _notification.SendSmsAsync(dto.PhoneNumber, $"Login using Email Or Phone: {user.Email + "/" + user.PhoneNumber} Password: {data.Password}" +
-            //$"Download The APP For Login Using Link : abc.com");
-            if (!string.IsNullOrEmpty(user.Email))
-            {
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await _notification.SendEmailAsync(user.Email,
-               "Welcome To Patient APP",
-               $"Login using Email Or Phone: {user.Email + "/" + user.PhoneNumber} Password: {dto.Password}" +
-               $"Download The APP For Login Using Link : abc.com");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Email failed: " + ex.Message);
-                    }
-                });
-            }
+            // ================= SEND NOTIFICATION =================
+
+            await SendPatientWelcomeNotification(user, rawPassword);
+
 
 
             return ApiResponse<string>.SuccessResponse("User registered successfully");
         }
+        private async Task<string> SaveFile(IFormFile file, string folderName)
+        {
+            var folder = Path.Combine(Directory.GetCurrentDirectory(), $"wwwroot/uploads/{folderName}");
+
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var path = Path.Combine(folder, fileName);
+
+            using var stream = new FileStream(path, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/uploads/{folderName}/{fileName}";
+        }
+        private async Task SendPatientWelcomeNotification(
+    User user,
+    string password)
+        {
+            try
+            {
+                var emailMessage = $@"
+            <h2>Welcome To HomeCare Nursing Services</h2>
+
+            <p>Hello {user.Name},</p>
+
+            <p>Your account has been created successfully.</p>
+
+            <p>
+                <b>Login Email:</b> {user.Email}<br/>
+                <b>Phone Number:</b> {user.PhoneNumber}<br/>
+                <b>Password:</b> {password}
+            </p>
+
+            <p>
+                You can login using either your email address or phone number.
+            </p>
+
+            <p>
+                Please change your password after first login.
+            </p>
+
+            <p>
+                Download App:
+                <a href='https://abc.com'>
+                    Click Here
+                </a>
+            </p>
+
+            <p>Thank you.</p>
+        ";
+
+                // ================= EMAIL =================
+
+                if (!string.IsNullOrWhiteSpace(user.Email))
+                {
+                    await _notification.SendEmailAsync(
+                        user.Email,
+                        "Welcome To HomeCare Nursing Services",
+                        emailMessage);
+                }
+
+                // ================= SMS =================
+
+                if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+                {
+                    var smsMessage =
+                        $"Welcome to HomeCare Nursing Services. " +
+                        $"Login using Phone/Email and Password: {password}";
+
+                    //await _notification.SendSmsAsync(
+                    //    user.PhoneNumber,
+                    //    smsMessage);
+                }
+            }
+            catch
+            {
+                // Ignore notification failure
+            }
+        }
+
     }
 }

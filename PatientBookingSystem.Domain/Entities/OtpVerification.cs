@@ -26,5 +26,6 @@ namespace PatientBookingSystem.Domain.Entities
 
         public DateTime CreatedAt { get; set; }
         public string? Gender { get; set; }
+        public string? UserProfileImageUrl { get; set; }
     }
 }

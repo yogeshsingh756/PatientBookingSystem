@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PatientBookingSystem.Application.DTOs;
 using PatientBookingSystem.Application.DTOs.Common;
@@ -8,6 +9,7 @@ namespace PatientBookingSystem.API.Controllers
 {
     [ApiController]
     [Route("api/staff-availability")]
+    [Authorize]
     public class StaffAvailabilityController : ControllerBase
     {
         private readonly IStaffAvailabilityService _service;

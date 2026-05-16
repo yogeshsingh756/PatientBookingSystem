@@ -27,5 +27,6 @@ namespace PatientBookingSystem.Domain.Entities
 
         public bool IsActive { get; set; } = false;
         public string? Gender { get; set; }
+        public string? UserProfileImageUrl { get; set; }
     }
 }

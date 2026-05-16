@@ -1,13 +1,10 @@
-﻿using PatientBookingSystem.Application.DTOs;
+﻿using Microsoft.AspNetCore.Http;
+using PatientBookingSystem.Application.DTOs;
 using PatientBookingSystem.Application.DTOs.Common;
 using PatientBookingSystem.Application.Interfaces;
-using PatientBookingSystem.Application.Models;
 using PatientBookingSystem.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using static System.Net.WebRequestMethods;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Buffers.Text;
+
 
 namespace PatientBookingSystem.Application.Services
 {
@@ -17,17 +14,20 @@ namespace PatientBookingSystem.Application.Services
         private readonly INotificationService _notification;
         private readonly IOtpRepository _otpRepository;
         private readonly ITokenService _tokenService;
+        private readonly IHttpContextAccessor _http;
 
         public AuthService(
             IUserRepository userRepo,
             INotificationService notification,
             IOtpRepository otpRepository,
-            ITokenService tokenService)
+            ITokenService tokenService,
+            IHttpContextAccessor http)
         {
             _userRepo = userRepo;
             _notification = notification;
             _otpRepository = otpRepository;
             _tokenService = tokenService;
+            _http = http;
         }
 
         public async Task<ApiResponse<string>> SendOtpAsync(RegisterRequestDto dto)
@@ -56,7 +56,10 @@ namespace PatientBookingSystem.Application.Services
                 IsUsed = false,
                 CreatedAt = DateTime.UtcNow,
                 PinCode = dto.PinCode,
-                Gender = dto.Gender
+                Gender = dto.Gender,
+                UserProfileImageUrl = dto.UserProfileImageUrl != null && dto.UserProfileImageUrl.Length > 0
+        ? await SaveFile(dto.UserProfileImageUrl, "User")
+        : null
             };
 
             // Save OTP (temporary storage)
@@ -109,7 +112,8 @@ namespace PatientBookingSystem.Application.Services
                 CreatedAt = DateTime.UtcNow,
                 PinCode = otpData.PinCode,
                 IsActive = true,
-                Gender = otpData.Gender
+                Gender = otpData.Gender,
+                UserProfileImageUrl = otpData.UserProfileImageUrl
             };
             // Send credentials
             await _userRepo.AddAsync(user);
@@ -151,6 +155,7 @@ namespace PatientBookingSystem.Application.Services
                 return ApiResponse<LoginResponseDto>.FailResponse("User account is inactive. Please contact support.");
 
             var token = _tokenService.GenerateToken(user);
+            var baseUrl = $"{_http.HttpContext.Request.Scheme}://{_http.HttpContext.Request.Host}";
             var response = new LoginResponseDto
             {
                 Token = token,
@@ -164,7 +169,8 @@ namespace PatientBookingSystem.Application.Services
                 Landmark = user.Landmark,
                 IsVerified = user.IsVerified,
                 Pincode = user.PinCode,
-                Gender = user.Gender
+                Gender = user.Gender,
+                UserProfileImageUrl = user.UserProfileImageUrl != null ? baseUrl + user.UserProfileImageUrl : null
             };
             return ApiResponse<LoginResponseDto>.SuccessResponse(response, "Login successful");
         }
@@ -195,7 +201,8 @@ namespace PatientBookingSystem.Application.Services
                 Email = user.Email,
                 Role = user.Role,
                 PinCode = user.PinCode,
-                Gender = user.Gender
+                Gender = user.Gender,
+                UserProfileImageUrl = user.UserProfileImageUrl
             };
 
             await _otpRepository.SaveOtpAsync(otpEntity);
@@ -238,6 +245,8 @@ namespace PatientBookingSystem.Application.Services
             if (!user.IsActive)
                 return ApiResponse<LoginResponseDto>.FailResponse("User account is inactive. Please contact support.");
 
+            var baseUrl = $"{_http.HttpContext.Request.Scheme}://{_http.HttpContext.Request.Host}";
+
             // TODO: Generate JWT
             var token = _tokenService.GenerateToken(user);
             var response = new LoginResponseDto
@@ -252,11 +261,28 @@ namespace PatientBookingSystem.Application.Services
                 HouseNumber = user.HouseNumber,
                 Landmark = user.Landmark,
                 IsVerified = user.IsVerified,
-                                Pincode = user.PinCode,
-                                Gender = user.Gender
+                Pincode = user.PinCode,
+                Gender = user.Gender,
+                UserProfileImageUrl = user.UserProfileImageUrl != null ? baseUrl + user.UserProfileImageUrl : null
             };
 
             return ApiResponse<LoginResponseDto>.SuccessResponse(response, "Login successful via OTP");
+        }
+
+        private async Task<string> SaveFile(IFormFile file, string folderName)
+        {
+            var folder = Path.Combine(Directory.GetCurrentDirectory(), $"wwwroot/uploads/{folderName}");
+
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var path = Path.Combine(folder, fileName);
+
+            using var stream = new FileStream(path, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/uploads/{folderName}/{fileName}";
         }
     }
 }

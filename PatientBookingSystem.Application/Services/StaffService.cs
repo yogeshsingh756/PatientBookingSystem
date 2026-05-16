@@ -18,8 +18,9 @@ namespace PatientBookingSystem.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStaffAvailabilityRepository _availabilityRepo;
         private readonly IPatientRepository _appointmentRepo;
+        private readonly INotificationService _notificationService;
 
-        public StaffService(IStaffRepository repo, IStaffDocumentRepository docRepo, IUserRepository userRepo, IHttpContextAccessor http, IUnitOfWork unitOfWork, IStaffAvailabilityRepository availabilityRepo,IPatientRepository patientRepository)
+        public StaffService(IStaffRepository repo, IStaffDocumentRepository docRepo, IUserRepository userRepo, IHttpContextAccessor http, IUnitOfWork unitOfWork, IStaffAvailabilityRepository availabilityRepo,IPatientRepository patientRepository, INotificationService notificationService)
         {
             _repo = repo;
             _docRepo = docRepo;
@@ -28,6 +29,7 @@ namespace PatientBookingSystem.Application.Services
             _unitOfWork = unitOfWork;
             _availabilityRepo = availabilityRepo;
             _appointmentRepo = patientRepository;
+            _notificationService = notificationService;
         }
 
         // ✅ CREATE
@@ -40,7 +42,7 @@ namespace PatientBookingSystem.Application.Services
                 var exists = await _userRepo.ExistsAsync(dto.Email, dto.PhoneNumber);
                 if (exists)
                     return ApiResponse<string>.FailResponse("User already exists");
-
+                var rawPassword = dto.Password;
                 var user = new User
                 {
                     Name = dto.Name,
@@ -98,6 +100,7 @@ namespace PatientBookingSystem.Application.Services
 
                 // ✅ SINGLE SAVE
                 await _unitOfWork.CommitAsync();
+                await SendStaffWelcomeNotification(user, rawPassword);
 
                 return ApiResponse<string>.SuccessResponse("Staff created successfully");
             }
@@ -397,6 +400,65 @@ namespace PatientBookingSystem.Application.Services
             await file.CopyToAsync(stream);
 
             return $"/uploads/{folderName}/{fileName}";
+        }
+        private async Task SendStaffWelcomeNotification(
+    User user,
+    string password)
+        {
+            try
+            {
+                var loginMessage = $@"
+            <h2>Welcome to HomeCare Nursing Services</h2>
+
+            <p>Hello {user.Name},</p>
+
+            <p>Your staff account has been created successfully.</p>
+
+            <p>
+                <b>Login Email:</b> {user.Email}<br/>
+                <b>Phone Number:</b> {user.PhoneNumber}<br/>
+                <b>Password:</b> {password}
+            </p>
+
+            <p>
+                You can login using either your email address or phone number.
+            </p>
+
+            <p>
+                Please change your password after first login.
+            </p>
+
+            <p>Thank you.</p>
+        ";
+
+                // ================= EMAIL =================
+
+                if (!string.IsNullOrWhiteSpace(user.Email))
+                {
+                    await _notificationService.SendEmailAsync(
+                        user.Email,
+                        "Welcome to HomeCare Nursing Services",
+                        loginMessage);
+                }
+
+                // ================= SMS =================
+
+                if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+                {
+                    var smsMessage =
+                        $"Welcome to HomeCare Nursing Services. " +
+                        $"Login Phone: {user.PhoneNumber}, " +
+                        $"Password: {password}";
+
+                    //await _notificationService.SendSmsAsync(
+                    //    user.PhoneNumber,
+                    //    smsMessage);
+                }
+            }
+            catch
+            {
+                // Ignore notification failure
+            }
         }
     }
 }
