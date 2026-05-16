@@ -57,7 +57,7 @@ namespace PatientBookingSystem.Infrastructure.Services
         //public async Task SendEmailAsync(string email, string subject, string message)
         //{
         //    var emailMessage = new MimeMessage();
-        //    emailMessage.From.Add(new MailboxAddress("Patient Booking App", _emailSettings.SenderEmail));
+        //    emailMessage.From.Add(new MailboxAddress("HomeCare Nursing Services", _emailSettings.SenderEmail));
         //    emailMessage.To.Add(new MailboxAddress("", email));
         //    emailMessage.Subject = subject;
 

@@ -14,13 +14,15 @@ namespace PatientBookingSystem.Application.Services
         private readonly IHttpContextAccessor _httpContext;
         private readonly IPatientStatusHistoryRepository _historyRepo;
         private readonly IStaffRepository _staffRepo;
+        private readonly INotificationService _notificationService;
 
-        public PatientService(IPatientRepository repo, IHttpContextAccessor httpContext, IPatientStatusHistoryRepository historyRepo, IStaffRepository staffRepo)
+        public PatientService(IPatientRepository repo, IHttpContextAccessor httpContext, IPatientStatusHistoryRepository historyRepo, IStaffRepository staffRepo, INotificationService notification)
         {
             _repo = repo;
             _httpContext = httpContext;
             _historyRepo = historyRepo;
             _staffRepo = staffRepo;
+            _notificationService = notification;
         }
 
         // ✅ CREATE
@@ -85,7 +87,7 @@ namespace PatientBookingSystem.Application.Services
             {
                 Id = x.Id,
                 UserId = x.UserId,
-                ServiceId = x.ServiceId ??0,
+                ServiceId = x.ServiceId ?? 0,
                 StaffId = x.StaffId,
                 AppointmentDate = x.AppointmentDate,
                 SlotTime = x.SlotTime,
@@ -126,7 +128,7 @@ namespace PatientBookingSystem.Application.Services
                     HouseNumber = x.User.HouseNumber ?? string.Empty,
                     PinCode = x.User.PinCode ?? string.Empty,
                     DischargeDate = x.DischargeDate ?? null,
-                    DoctorPrescription =  x.DoctorPrescription ?? string.Empty,
+                    DoctorPrescription = x.DoctorPrescription ?? string.Empty,
                     NoOfDays = x.NoOfDays ?? 0,
                     Remarks = _historyRepo.GetQueryable()
                         .Where(h => h.PatientId == x.Id)
@@ -187,7 +189,7 @@ namespace PatientBookingSystem.Application.Services
                 DoctorPrescriptionImageUrl = x.DoctorPrescriptionImageUrl != null ? baseUrl + x.DoctorPrescriptionImageUrl : null,
                 DiseaseImageUrl = x.DiseaseImageUrl != null ? baseUrl + x.DiseaseImageUrl : null,
                 Status = x.Status.ToString(),
-                Latitude = x.Latitude,  
+                Latitude = x.Latitude,
                 Longitude = x.Longitude,
                 AppointmentAddress = x.AppointmentAddress
             };
@@ -208,7 +210,7 @@ namespace PatientBookingSystem.Application.Services
             if (dto.DoctorPrescriptionImage != null)
                 patient.DoctorPrescriptionImageUrl = await SaveImage(dto.DoctorPrescriptionImage);
 
-                patient.UserId = dto.UserId;
+            patient.UserId = dto.UserId;
             patient.ServiceId = dto.ServiceId;
             patient.StaffId = dto.StaffId.GetValueOrDefault() == 0 ? null : dto.StaffId;
             patient.AppointmentDate = dto.AppointmentDate;
@@ -248,7 +250,12 @@ namespace PatientBookingSystem.Application.Services
 
         public async Task<ApiResponse<string>> ChangeStatusAsync(ChangePatientStatusDto dto)
         {
-            var patient = await _repo.GetByIdAsync(dto.Id);
+            var patient = await _repo.GetQueryable()
+               .Include(x => x.User)
+               .Include(x => x.Service)
+               .Include(x => x.Staff)
+                .ThenInclude(s => s.User)
+               .FirstOrDefaultAsync(x => x.Id == dto.Id);
 
             if (patient == null)
                 return ApiResponse<string>.FailResponse("Patient not found");
@@ -309,6 +316,21 @@ namespace PatientBookingSystem.Application.Services
             // ✅ Single save
             await _repo.SaveChangesAsync();
 
+            if(dto.Status == PatientStatus.Approved)
+            {
+
+              patient = await _repo.GetQueryable()
+              .Include(x => x.User)
+              .Include(x => x.Service)
+              .Include(x => x.Staff)
+               .ThenInclude(s => s.User)
+              .FirstOrDefaultAsync(x => x.Id == patient.Id);
+
+            }
+            // ================= NOTIFICATIONS =================
+
+            await SendStatusNotifications(patient, dto);
+
             return ApiResponse<string>.SuccessResponse($"Status updated to {dto.Status}");
         }
 
@@ -362,9 +384,7 @@ namespace PatientBookingSystem.Application.Services
                     Longitude = x.Longitude,
                     AppointmentAddress = x.AppointmentAddress,
                     StaffId = x.StaffId ?? 0,
-                    StaffName = x.Staff != null && x.Staff.User != null
-    ? x.Staff.User.Name
-    : string.Empty
+                    StaffName = x.Staff != null && x.Staff.User != null ? x.Staff.User.Name : string.Empty
                 })
                 .ToListAsync();
 
@@ -376,7 +396,7 @@ namespace PatientBookingSystem.Application.Services
                 Data = data
             }, "Appointments fetched successfully");
         }
-         //✅ IMAGE SAVE
+        //✅ IMAGE SAVE
         private async Task<string?> SaveImage(IFormFile? file)
         {
             if (file == null) return null;
@@ -393,6 +413,184 @@ namespace PatientBookingSystem.Application.Services
             await file.CopyToAsync(stream);
 
             return "/uploads/patient/" + fileName;
+        }
+        private async Task SendStatusNotifications(PatientAppointment patient, ChangePatientStatusDto dto)
+        {
+            try
+            {
+                switch (dto.Status)
+                {
+                    case PatientStatus.Approved:
+
+                        await SendApprovalNotifications(patient);
+
+                        break;
+
+                    case PatientStatus.Completed:
+
+                        await SendCompletedNotification(patient);
+
+                        break;
+
+                    case PatientStatus.Cancelled:
+
+                        await SendCancelledNotification(patient, dto.Remarks);
+
+                        break;
+                }
+            }
+            catch
+            {
+                // Ignore notification failures
+            }
+        }
+        private async Task SendApprovalNotifications(PatientAppointment patient)
+        {
+            string googleMapLink = "";
+
+            if (patient.Latitude != null && patient.Longitude != null)
+            {
+                googleMapLink =
+                    $"https://www.google.com/maps?q={patient.Latitude},{patient.Longitude}";
+            }
+
+            // ================= PATIENT =================
+
+            var patientMessage = $@"
+            <h3>Appointment Approved</h3>
+
+            <p>Hello {patient.User.Name},</p>
+
+            <p>Your appointment has been approved.</p>
+
+            <p>
+              <b>Service:</b> {patient.Service?.Name}<br/>
+              <b>Date:</b> {patient.AppointmentDate:dd MMM yyyy}<br/>
+              <b>Slot:</b> {patient.SlotTime}<br/>
+              <b>Staff:</b> {patient.Staff?.User?.Name}
+            </p>
+
+            <p>Thank you.</p>
+            ";
+
+            await SafeSendEmail(
+                patient.User.Email,
+                "Appointment Approved",
+                patientMessage);
+
+            await SafeSendSms(
+                patient.User.PhoneNumber,
+                $"Your appointment on {patient.AppointmentDate:dd MMM} at {patient.SlotTime} has been approved.");
+
+            // ================= STAFF =================
+
+            if (patient.Staff?.User != null)
+            {
+                var staffMessage = $@"
+                 <h3>New Appointment Assigned</h3>
+
+                 <p>Hello {patient.Staff.User.Name},</p>
+
+                 <p>You have been assigned a patient visit.</p>
+
+                 <p>
+                  <b>Patient:</b> {patient.User.Name}<br/>
+                  <b>Phone:</b> {patient.User.PhoneNumber}<br/>
+                  <b>Date:</b> {patient.AppointmentDate:dd MMM yyyy}<br/>
+                  <b>Slot:</b> {patient.SlotTime}<br/>
+                  <b>Address:</b> {patient.AppointmentAddress}
+                 </p>
+
+                 <p>
+                   <a href='{googleMapLink}'>
+                    Open Google Map
+                   </a>
+                 </p>
+                ";
+
+                await SafeSendEmail(
+                    patient.Staff.User.Email,
+                    "New Appointment Assigned",
+                    staffMessage);
+
+                await SafeSendSms(
+                    patient.Staff.User.PhoneNumber,
+                    $"New appointment assigned on {patient.AppointmentDate:dd MMM} at {patient.SlotTime}. Map: {googleMapLink}");
+            }
+        }
+        private async Task SendCompletedNotification(PatientAppointment patient)
+        {
+            var message = $@"
+             <h3>Appointment Completed</h3>
+
+             <p>Hello {patient.User.Name},</p>
+
+             <p>Your appointment has been completed successfully.</p>
+
+             <p>Thank you for choosing us.</p>
+            ";
+
+            await SafeSendEmail(
+                patient.User.Email,
+                "Appointment Completed",
+                message);
+
+            await SafeSendSms(
+                patient.User.PhoneNumber,
+                "Your appointment has been completed successfully.");
+        }
+        private async Task SendCancelledNotification(PatientAppointment patient, string? remarks)
+        {
+            var message = $@"
+             <h3>Appointment Cancelled</h3>
+
+             <p>Hello {patient.User.Name},</p>
+
+             <p>Your appointment has been cancelled.</p>
+
+             <p>
+             <b>Reason:</b> {remarks}
+             </p>
+            ";
+
+            await SafeSendEmail(
+                patient.User.Email,
+                "Appointment Cancelled",
+                message);
+
+            await SafeSendSms(
+                patient.User.PhoneNumber,
+                $"Your appointment has been cancelled. Reason: {remarks}");
+        }
+        private async Task SafeSendEmail(string? email, string subject, string message)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(email))
+                {
+                    await _notificationService
+                        .SendEmailAsync(email, subject, message);
+                }
+            }
+            catch
+            {
+                // Ignore email failure
+            }
+        }
+        private async Task SafeSendSms( string? phone, string message)
+        {
+            try
+            {
+                //if (!string.IsNullOrWhiteSpace(phone))
+                //{
+                //    await _notificationService
+                //        .SendSmsAsync(phone, message);
+                //}
+            }
+            catch
+            {
+                // Ignore SMS failure
+            }
         }
     }
 }

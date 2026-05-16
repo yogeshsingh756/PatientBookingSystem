@@ -159,6 +159,7 @@ namespace PatientBookingSystem.Application.Services
             if (exists)
                 return ApiResponse<string>.FailResponse("User already exists with this email or phone");
 
+            var rawPassword = dto.Password;
 
             var user = new User
             {
@@ -182,25 +183,10 @@ namespace PatientBookingSystem.Application.Services
             // Send credentials
             await _repo.AddAsync(user);
             await _repo.SaveChangesAsync();
-            //await _notification.SendSmsAsync(dto.PhoneNumber, $"Login using Email Or Phone: {user.Email + "/" + user.PhoneNumber} Password: {data.Password}" +
-            //$"Download The APP For Login Using Link : abc.com");
-            if (!string.IsNullOrEmpty(user.Email))
-            {
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await _notification.SendEmailAsync(user.Email,
-               "Welcome To Patient APP",
-               $"Login using Email Or Phone: {user.Email + "/" + user.PhoneNumber} Password: {dto.Password}" +
-               $"Download The APP For Login Using Link : abc.com");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Email failed: " + ex.Message);
-                    }
-                });
-            }
+            // ================= SEND NOTIFICATION =================
+
+            await SendPatientWelcomeNotification(user, rawPassword);
+
 
 
             return ApiResponse<string>.SuccessResponse("User registered successfully");
@@ -220,5 +206,71 @@ namespace PatientBookingSystem.Application.Services
 
             return $"/uploads/{folderName}/{fileName}";
         }
+        private async Task SendPatientWelcomeNotification(
+    User user,
+    string password)
+        {
+            try
+            {
+                var emailMessage = $@"
+            <h2>Welcome To HomeCare Nursing Services</h2>
+
+            <p>Hello {user.Name},</p>
+
+            <p>Your account has been created successfully.</p>
+
+            <p>
+                <b>Login Email:</b> {user.Email}<br/>
+                <b>Phone Number:</b> {user.PhoneNumber}<br/>
+                <b>Password:</b> {password}
+            </p>
+
+            <p>
+                You can login using either your email address or phone number.
+            </p>
+
+            <p>
+                Please change your password after first login.
+            </p>
+
+            <p>
+                Download App:
+                <a href='https://abc.com'>
+                    Click Here
+                </a>
+            </p>
+
+            <p>Thank you.</p>
+        ";
+
+                // ================= EMAIL =================
+
+                if (!string.IsNullOrWhiteSpace(user.Email))
+                {
+                    await _notification.SendEmailAsync(
+                        user.Email,
+                        "Welcome To HomeCare Nursing Services",
+                        emailMessage);
+                }
+
+                // ================= SMS =================
+
+                if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+                {
+                    var smsMessage =
+                        $"Welcome to HomeCare Nursing Services. " +
+                        $"Login using Phone/Email and Password: {password}";
+
+                    //await _notification.SendSmsAsync(
+                    //    user.PhoneNumber,
+                    //    smsMessage);
+                }
+            }
+            catch
+            {
+                // Ignore notification failure
+            }
+        }
+
     }
 }
