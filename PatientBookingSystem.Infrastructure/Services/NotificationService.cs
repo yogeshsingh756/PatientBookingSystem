@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using PatientBookingSystem.Application.Interfaces;
 using PatientBookingSystem.Infrastructure.Configurations;
+using SendGrid.Helpers.Mail;
 using System.Net;
 using System.Net.Mail;
 
@@ -9,47 +10,59 @@ namespace PatientBookingSystem.Infrastructure.Services
 {
     public class NotificationService : INotificationService
     {
-        private readonly EmailSettings _awsSettings;
+        private readonly EmailSettings _emailSettings;
 
-        public NotificationService(IOptions<EmailSettings> awsSettings)
+        public NotificationService(IOptions<EmailSettings> emailSettings)
         {
-            _awsSettings = awsSettings.Value;
+            _emailSettings = emailSettings.Value;
         }
 
         public async Task SendEmailAsync(
-            string email,
-            string subject,
-            string message)
+       string email,
+       string subject,
+       string message)
         {
             try
             {
-                using (var client = new SmtpClient(_awsSettings.Host, _awsSettings.Port))
+                using (var client = new SmtpClient(
+                    _emailSettings.Host,
+                    _emailSettings.Port))
                 {
                     client.Credentials = new NetworkCredential(
-                        _awsSettings.Username,
-                        _awsSettings.Password
+                        _emailSettings.Username,
+                        _emailSettings.Password
                     );
 
                     client.EnableSsl = true;
 
+                    client.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+                    client.UseDefaultCredentials = false;
+
                     var mailMessage = new MailMessage
                     {
-                        From = new MailAddress(_awsSettings.SenderEmail),
+                        From = new MailAddress(
+                            _emailSettings.SenderEmail,
+                            _emailSettings.SenderName
+                        ),
+
                         Subject = subject,
+
                         Body = message,
+
                         IsBodyHtml = true
                     };
 
                     mailMessage.To.Add(email);
 
                     await client.SendMailAsync(mailMessage);
-
-                    Console.WriteLine("Email Sent Successfully");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SMTP Email Error: {ex.Message}");
+                throw new Exception(
+                    $"Email sending failed: {ex.Message}"
+                );
             }
         }
 
