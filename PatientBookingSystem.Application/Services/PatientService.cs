@@ -367,9 +367,9 @@ namespace PatientBookingSystem.Application.Services
                     UserName = x.User.Name,
                     PhoneNumber = x.User.PhoneNumber,
 
-                    Address = x.User.Address,
-                    HouseNumber = x.User.HouseNumber,
-                    PinCode = x.User.PinCode,
+                    Address = x.User.Address ?? string.Empty,
+                    HouseNumber = x.User.HouseNumber ?? string.Empty,
+                    PinCode = x.User.PinCode ?? string.Empty,
 
                     ServiceName = x.Service.Name,
                     Category = x.Service.Category,

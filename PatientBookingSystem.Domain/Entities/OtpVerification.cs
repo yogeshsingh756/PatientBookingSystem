@@ -15,11 +15,11 @@ namespace PatientBookingSystem.Domain.Entities
         // 🔥 Store user data TEMPORARILY
         public string Name { get; set; }
         public string Password { get; set; }
-        public string Address { get; set; }
-        public string Landmark { get; set; }
-        public string HouseNumber { get; set; }
+        public string? Address { get; set; }
+        public string? Landmark { get; set; }
+        public string? HouseNumber { get; set; }
         public string Role { get; set; }
-        public string PinCode { get; set; }
+        public string? PinCode { get; set; }
 
         public DateTime ExpiryTime { get; set; }
         public bool IsUsed { get; set; }
